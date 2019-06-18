@@ -119,7 +119,7 @@ deploy:
   release: v$(appveyor_build_version)
   provider: GitHub
   auth_token:
-    secure: oWzmrBr2aISJfqcr8c4FFjdwSDxJoSmucdBLp3S1OOv5/GuTQk29KS4j+l/MlV7i
+    secure: z52NfJCwGJ5hIi6UeQ+4/jGJtg1fylGqTSYkrUo/Qn0KHgfguY0IGdHUz0zZckXD
   artifact: binary
   draft: false
   prerelease: false
