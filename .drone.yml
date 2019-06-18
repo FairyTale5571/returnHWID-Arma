@@ -5,8 +5,8 @@ steps:
 - name: build
   image: golang
   commands:
-  - sudo apt update
-  - sudo apt install -y mingw-w64 gcc-multilib g++-multilib build-essential libc6-dev libc6-dev-i386 zip
+  - apt update
+  - apt install -y mingw-w64 gcc-multilib g++-multilib build-essential libc6-dev libc6-dev-i386 zip
   - go get golang.org/x/sys/windows/registry
   - CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ GOOS=windows GOARCH=amd64 CGO_ENABLED=1 go build -o dist/returnHWID_x64.dll -buildmode=c-shared .
   - CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ GOOS=windows GOARCH=386 CGO_ENABLED=1 go build -o dist/returnHWID.dll -buildmode=c-shared .
