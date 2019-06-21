@@ -15,4 +15,6 @@ Return hardware ID to Arma
     
     "returnHWID" callExtension "Product_Win";
     
+    "returnHWID" callExtension "Mac_Address";
+    
     -Result: STRING Crypted in sha256
