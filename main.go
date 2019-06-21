@@ -8,9 +8,11 @@ package main
 import "C"
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
+	"net"
 	"unsafe"
 
 	"golang.org/x/sys/windows/registry"
@@ -49,6 +51,19 @@ func protect(appID, id string) string {
 	return fmt.Sprintf("%x", mac.Sum(nil))
 }
 
+func getMacAddr() (addr string) {
+	interfaces, err := net.Interfaces()
+	if err == nil {
+		for _, i := range interfaces {
+			if i.Flags&net.FlagUp != 0 && bytes.Compare(i.HardwareAddr, nil) != 0 {
+				// Don't use random as we have a real address
+				addr = i.HardwareAddr.String()
+				break
+			}
+		}
+	}
+	return
+}
 func ReturnMyData(input *C.char) string {
 	in := C.GoString(input)
 	rID := ""
@@ -62,6 +77,8 @@ func ReturnMyData(input *C.char) string {
 	case "Product_Win":
 		id, _ := readRegistr(`SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
 		rID = fmt.Sprintf(protect(sha256Key, id))
+	case "Mac_Address":
+		rID = fmt.Sprintf("%s", getMacAddr())
 	default:
 		id := fmt.Sprintf("Error: %s is undefined command", in)
 		rID = id
