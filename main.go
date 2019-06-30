@@ -20,6 +20,8 @@ import (
 
 const sha256Key = "cn3487tcqyb#%*^@!mdr#rwajmnwa239rjqrc34j"
 
+func main() {}
+
 func readRegistr(input1 string, value string) (string, error) {
 	id, err := registry.OpenKey(registry.LOCAL_MACHINE, input1, registry.QUERY_VALUE|registry.WOW64_64KEY)
 	if err != nil {
@@ -34,8 +36,8 @@ func readRegistr(input1 string, value string) (string, error) {
 	return s, nil
 }
 
-//export RVExtensionVersion
-func RVExtensionVersion(output *C.char, outputsize C.size_t) {
+//export goRVExtensionVersion
+func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 	result := C.CString("HWID Return v1.0")
 	defer C.free(unsafe.Pointer(result))
 	var size = C.strlen(result) + 1
@@ -64,6 +66,7 @@ func getMacAddr() (addr string) {
 	}
 	return
 }
+
 func ReturnMyData(input *C.char) string {
 	in := C.GoString(input)
 	rID := ""
@@ -86,8 +89,8 @@ func ReturnMyData(input *C.char) string {
 	return rID
 }
 
-//export RVExtension
-func RVExtension(output *C.char, outputsize C.size_t, input *C.char) {
+//export goRVExtension
+func goRVExtension(output *C.char, outputsize C.size_t, input *C.char) {
 	id := ReturnMyData(input)
 	temp := (fmt.Sprintf("%s", id))
 	// Return a result to Arma
@@ -99,5 +102,3 @@ func RVExtension(output *C.char, outputsize C.size_t, input *C.char) {
 	}
 	C.memmove(unsafe.Pointer(output), unsafe.Pointer(result), size)
 }
-
-func main() {}
