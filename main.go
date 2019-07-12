@@ -82,6 +82,8 @@ func ReturnMyData(input *C.char) string {
 		rID = fmt.Sprintf(protect(sha256Key, id))
 	case "Mac_Address":
 		rID = fmt.Sprintf("%s", getMacAddr())
+	case "Version":
+		rID = fmt.Sprintf("v022.12.07.19")
 	default:
 		id := fmt.Sprintf("Error: %s is undefined command", in)
 		rID = id
