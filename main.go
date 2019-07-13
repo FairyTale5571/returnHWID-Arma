@@ -9,8 +9,6 @@ import "C"
 
 import (
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
 	"fmt"
 	"net"
 	"unsafe"
@@ -47,12 +45,6 @@ func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 	C.memmove(unsafe.Pointer(output), unsafe.Pointer(result), size)
 }
 
-func protect(appID, id string) string {
-	mac := hmac.New(sha256.New, []byte(id))
-	mac.Write([]byte(appID))
-	return fmt.Sprintf("%x", mac.Sum(nil))
-}
-
 func getMacAddr() (addr string) {
 	interfaces, err := net.Interfaces()
 	if err == nil {
@@ -73,17 +65,17 @@ func ReturnMyData(input *C.char) string {
 	switch in {
 	case "Machine_ID":
 		id, _ := readRegistr(`SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
-		rID = fmt.Sprintf(protect(sha256Key, id))
+		rID = fmt.Sprintf(id)
 	case "HDD_UID":
 		id, _ := readRegistr(`HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
-		rID = fmt.Sprintf(protect(sha256Key, id))
+		rID = fmt.Sprintf(id)
 	case "Product_Win":
 		id, _ := readRegistr(`SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
-		rID = fmt.Sprintf(protect(sha256Key, id))
+		rID = fmt.Sprintf(id)
 	case "Mac_Address":
 		rID = fmt.Sprintf("%s", getMacAddr())
 	case "Version":
-		rID = fmt.Sprintf("v022.12.07.19")
+		rID = fmt.Sprintf("v025.14.07.19")
 	default:
 		id := fmt.Sprintf("Error: %s is undefined command", in)
 		rID = id
