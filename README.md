@@ -1,7 +1,7 @@
 # returnHWID-Arma
 Return hardware ID to Arma
  
- Not approved by BattlEye right now, I work on it.
+ Approved by battleye!
  
  Build: 
     
