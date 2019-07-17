@@ -9,12 +9,12 @@ Return hardware ID to Arma
 
  Usage in Arma:
  
-    "returnHWID" callExtension "Machine_ID";
-    
-    "returnHWID" callExtension "HDD_UID";
-    
-    "returnHWID" callExtension "Product_Win";
-    
-    "returnHWID" callExtension "Mac_Address";
-    
+    "midika" -HWID
+    "hardidi" -HDD 0 ID
+    "windidi" -Product Key
+    "macsie" -mac address
+    "companiesname" - computer name
+    "guidreas" - unique UUID generated this dll in registry windows
+    "VSC" - проверяет записан ли UUID в реестре, если нет, то создает, возвращает в игру просто текст написанный мною
+
     -Result: STRING Crypted in sha256
