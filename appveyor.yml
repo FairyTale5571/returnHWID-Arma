@@ -58,9 +58,9 @@ for:
       GOOS: windows
       GOARCH: amd64
     build_script:
-      - go build -o returnHWID_x64.dll -buildmode=c-shared .
+      - go build -o rrpExt_x64.dll -buildmode=c-shared .
     artifacts:
-      - path: returnHWID_x64.dll
+      - path: rrpExt_x64.dll
         name: binary
   -
     matrix:
@@ -110,9 +110,9 @@ for:
       GOOS: windows
       GOARCH: 386
     build_script:
-      - go build -o returnHWID.dll -buildmode=c-shared .
+      - go build -o rrpExt.dll -buildmode=c-shared .
     artifacts:
-      - path: returnHWID.dll
+      - path: rrpExt.dll
         name: binary
 
 deploy:
