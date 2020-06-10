@@ -9,12 +9,10 @@ Return hardware ID to Arma
 
  Usage in Arma:
  
-    "midika" -HWID
-    "hardidi" -HDD 0 ID
-    "windidi" -Product Key
-    "macsie" -mac address
-    "companiesname" - computer name
-    "guidreas" - unique UUID generated this dll in registry windows
+    "upc" - серийный номер процессора
+    "fontsHash" - хэш установленных шрифтов
+    "midika" - HWID
+    "macsie" - mac address
+    "companiesname" - имя пк
+    "guidreas" - Сгенерированый UUID командой VSC
     "VSC" - проверяет записан ли UUID в реестре, если нет, то создает, возвращает в игру просто текст написанный мною
-
-    -Result: STRING Crypted in sha256

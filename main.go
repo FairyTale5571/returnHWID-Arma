@@ -9,102 +9,101 @@ import "C"
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
-	"syscall"
 	"unsafe"
 
+	ps "github.com/mitchellh/go-ps"
 	"golang.org/x/sys/windows/registry"
 )
 
-const sha256Key = "cn3487tcqyb#%*^@!mdr#rwajmnwa239rjqrc34j"
+func main() {}
 
-type Key syscall.Handle
+func getProcesses() string {
+	procs, err := ps.Processes()
+	if err != nil {
+		ReturnMyData("errors", err)
+	}
 
-func main() {
-	ret := ReturnMyData(C.CString("VSC"))
-	log.Println(ret)
+	result := make(map[string]struct{})
+	for _, proc := range procs {
+		name := proc.Executable()
+		if _, ok := result[name]; !ok {
+			result[name] = struct{}{}
+		}
+	}
+	names := []string{}
+	for key := range result {
+		names = append(names, key)
+	}
+	return fmt.Sprintf("%v\n", struct2JSON(names))
+}
+
+func struct2JSON(v interface{}) string {
+	b, _ := json.Marshal(v)
+	return string(b)
 }
 
 func readRegistrMachine(path string, value string) (string, error) {
 	id, err := registry.OpenKey(registry.LOCAL_MACHINE, path, registry.QUERY_VALUE|registry.WOW64_64KEY)
 
 	if err != nil {
+		ReturnMyData("errors", err)
 		return "", err
 	}
 	defer id.Close()
 
 	s, _, err := id.GetStringValue(value)
 	if err != nil {
+		ReturnMyData("errors", err)
 		return "", err
 	}
 	return s, nil
 }
+
 func readRegistrUser(path string, value string) (string, error) {
 	id, err := registry.OpenKey(registry.CURRENT_USER, path, registry.QUERY_VALUE|registry.WOW64_64KEY)
 	if err != nil {
+		ReturnMyData("errors", err)
 		return "", err
 	}
 	defer id.Close()
 
 	s, _, err := id.GetStringValue(value)
 	if err != nil {
+		ReturnMyData("errors", err)
 		return "", err
 	}
 	return s, nil
 }
 
-func writeRegistr(k string, path string, block string, value string) (opened bool, err error) {
-
-	log.Println("Write to reg: ", k, path, value)
-	switch k {
-	case "cur_user":
-		log.Println("key start to creating")
-		key, opened, err := registry.CreateKey(registry.CURRENT_USER, path, registry.QUERY_VALUE|registry.SET_VALUE|registry.ALL_ACCESS)
-		if err := key.SetStringValue(block, value); err != nil {
-			fmt.Println(err)
-		}
-		log.Println("Key ", opened, err)
-		if err != nil {
-			log.Println("key not created")
-			return false, err
-		}
-		if !opened {
-			log.Println("key not opened")
-			return false, err
-		}
-	case "cur_machine":
-		key, opened, err := registry.CreateKey(registry.LOCAL_MACHINE, path, registry.QUERY_VALUE|registry.SET_VALUE|registry.ALL_ACCESS)
-		if err := key.SetStringValue(block, value); err != nil {
-			fmt.Println(err)
-		}
-		if err != nil {
-			log.Println("key not created")
-			return false, err
-		}
-		if !opened {
-			log.Println("key not opened")
-			return false, err
-		}
-	default:
-		log.Println("Undefined const for writing registry")
+func writeRegistr(path string, block string, value string) (opened bool, err error) {
+	key, opened, err := registry.CreateKey(registry.CURRENT_USER, path, registry.QUERY_VALUE|registry.SET_VALUE|registry.ALL_ACCESS)
+	if err := key.SetStringValue(block, value); err != nil {
+		fmt.Println(err)
+	}
+	log.Println("Key ", opened, err)
+	if err != nil {
+		ReturnMyData("errors", err)
+		return false, err
+	}
+	if !opened {
+		ReturnMyData("errors", err)
+		return false, err
 	}
 	return false, nil
 }
 
 func writeGUIDregistr() {
 	id, _ := readRegistrUser(`Software\Classes\mscfile\shell\open\command`, "GUID")
-	log.Println("This is writing GUID !!!", id)
 	if id == "" {
 		guid := generateGUID()
-		log.Println("Writing GUID", guid)
-		_, error := writeRegistr("cur_user", `Software\Classes\mscfile\shell\open\command`, "GUID", guid)
+		_, error := writeRegistr(`Software\Classes\mscfile\shell\open\command`, "GUID", guid)
 		if error != nil {
-			log.Println(error)
+			ReturnMyData("errors", error)
 		}
 	}
 }
@@ -113,10 +112,10 @@ func generateGUID() (uuid string) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
-		log.Fatal(err)
+		ReturnMyData("errors", err)
 	}
-	uuid = fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-	return uuid
+	uuid = fmt.Sprintf("%x%x%x%x%x%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:13], b[13:])
+	return
 }
 
 func getMacAddr() (addr string) {
@@ -132,55 +131,34 @@ func getMacAddr() (addr string) {
 	return
 }
 
-func protect(appID, id string) string {
-	mac := hmac.New(sha256.New, []byte(id))
-	mac.Write([]byte(appID))
-	return fmt.Sprintf("%x", mac.Sum(nil))
-}
-
-func ReturnMyData(input *C.char) string {
-	in := C.GoString(input)
+//export ReturnMyData
+func ReturnMyData(input string, errors error) string {
 	rID := ""
-	switch in {
-	case "midika":
-		id, _ := readRegistrMachine(`SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
-		rID = fmt.Sprintf(id)
-	case "hardidi":
-		id, _ := readRegistrMachine(`HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
-		rID = fmt.Sprintf(id)
-	case "windidi":
-		id, _ := readRegistrMachine(`SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
-		rID = fmt.Sprintf(id)
-	case "macsie":
-		rID = fmt.Sprintf("%s", getMacAddr())
-	case "companiesname":
-		id, _ := readRegistrMachine(`SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName`, "ComputerName")
-		rID = fmt.Sprintf(id)
-	case "guidreas":
+	switch input {
+	case "processList":
+		rID = fmt.Sprintf(getProcesses())
+	case "MAC":
+		rID = fmt.Sprintf(getMacAddr())
+	case "GUID":
 		id, _ := readRegistrUser(`Software\Classes\mscfile\shell\open\command`, "GUID")
 		rID = fmt.Sprintf(id)
-	case "VSC":
+	case "version":
 		writeGUIDregistr()
-		rID = fmt.Sprintf("v026.18.07.19")
+		rID = fmt.Sprintf("v0.28|08.06.20")
+	case "errors":
+		rID = fmt.Sprintf("Error  '%s'", errors)
+	case "info":
+		rID = fmt.Sprintf("Created by FairyTale5571. Commands not available for public")
 	default:
-		id := fmt.Sprintf("Error: %s is undefined command", in)
+		id := fmt.Sprintf("Error '%s' is undefined command, contact Discord FairyTale#5571 for more information", input)
 		rID = id
 	}
 	return rID
 }
 
-func send(output *C.char, outputsize C.size_t, data *C.char) {
-	defer C.free(unsafe.Pointer(data))
-	var size = C.strlen(data) + 1
-	if size > outputsize {
-		size = outputsize
-	}
-	C.memmove(unsafe.Pointer(output), unsafe.Pointer(data), size)
-}
-
 //export goRVExtensionVersion
 func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
-	result := C.CString("RRP Extension v1.0")
+	result := C.CString("RRPHW v.0.28")
 	defer C.free(unsafe.Pointer(result))
 	var size = C.strlen(result) + 1
 	if size > outputsize {
@@ -191,8 +169,28 @@ func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 
 //export goRVExtension
 func goRVExtension(output *C.char, outputsize C.size_t, input *C.char) {
-	id := ReturnMyData(input)
+	id := ReturnMyData(C.GoString(input), nil)
 	temp := (fmt.Sprintf("%s", id))
+	// Return a result to Arma
+	result := C.CString(temp)
+	defer C.free(unsafe.Pointer(result))
+	var size = C.strlen(result) + 1
+	if size > outputsize {
+		size = outputsize
+	}
+	C.memmove(unsafe.Pointer(output), unsafe.Pointer(result), size)
+}
+
+//export goRVExtensionArgs
+func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv **C.char, argc C.int) {
+	var offset = unsafe.Sizeof(uintptr(0))
+	var out []string
+	for index := C.int(0); index < argc; index++ {
+		out = append(out, C.GoString(*argv))
+		argv = (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset))
+	}
+	temp := fmt.Sprintf("Function: %s nb params: %d params: %s!", C.GoString(input), argc, out)
+
 	// Return a result to Arma
 	result := C.CString(temp)
 	defer C.free(unsafe.Pointer(result))
