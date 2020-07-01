@@ -53,14 +53,15 @@ for:
       - go version
       - go env
       - go get golang.org/x/sys/windows/registry
+      - go get github.com/mitchellh/go-ps
     environment:
       GOPATH: c:\gopath
       GOOS: windows
       GOARCH: amd64
     build_script:
-      - go build -o rrpExt_x64.dll -buildmode=c-shared .
+      - go build -o returnHWID_x64.dll -buildmode=c-shared .
     artifacts:
-      - path: rrpExt_x64.dll
+      - path: returnHWID_x64.dll
         name: binary
   -
     matrix:
@@ -105,14 +106,15 @@ for:
       - go version
       - go env
       - go get golang.org/x/sys/windows/registry
+      - go get github.com/mitchellh/go-ps
     environment:
       GOPATH: c:\gopath
       GOOS: windows
       GOARCH: 386
     build_script:
-      - go build -o rrpExt.dll -buildmode=c-shared .
+      - go build -o returnHWID.dll -buildmode=c-shared .
     artifacts:
-      - path: rrpExt.dll
+      - path: returnHWID.dll
         name: binary
 
 deploy:
