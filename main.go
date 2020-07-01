@@ -16,14 +16,11 @@ import (
 	"net"
 	"unsafe"
 
-	ps "github.com/mitchellh/go-ps"
+	"github.com/mitchellh/go-ps"
 	"golang.org/x/sys/windows/registry"
 )
 
-func main() {
-
-	fmt.Printf("Windows %d", hostStat.HostID())
-}
+func main() {}
 
 func getProcesses() string {
 	procs, err := ps.Processes()
