@@ -20,7 +20,10 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-func main() {}
+func main() {
+
+	fmt.Printf("Windows %d", hostStat.HostID())
+}
 
 func getProcesses() string {
 	procs, err := ps.Processes()
@@ -135,6 +138,15 @@ func getMacAddr() (addr string) {
 func ReturnMyData(input string, errors error) string {
 	rID := ""
 	switch input {
+	case "hwid":
+		id, _ := readRegistrMachine(`SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
+		rID = fmt.Sprintf(id)
+	case "HDD_UID":
+		id, _ := readRegistrMachine(`HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
+		rID = fmt.Sprintf(id)
+	case "Product_Win":
+		id, _ := readRegistrMachine(`SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
+		rID = fmt.Sprintf(id)
 	case "processList":
 		rID = fmt.Sprintf(getProcesses())
 	case "MAC":
@@ -146,7 +158,7 @@ func ReturnMyData(input string, errors error) string {
 		writeGUIDregistr()
 		rID = fmt.Sprintf("v0.28|08.06.20")
 	case "errors":
-		rID = fmt.Sprintf("Error  '%s'", errors)
+		rID = fmt.Sprintf("Error '%s'", errors)
 	case "info":
 		rID = fmt.Sprintf("Created by FairyTale5571. Commands not available for public")
 	default:
@@ -171,26 +183,6 @@ func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 func goRVExtension(output *C.char, outputsize C.size_t, input *C.char) {
 	id := ReturnMyData(C.GoString(input), nil)
 	temp := (fmt.Sprintf("%s", id))
-	// Return a result to Arma
-	result := C.CString(temp)
-	defer C.free(unsafe.Pointer(result))
-	var size = C.strlen(result) + 1
-	if size > outputsize {
-		size = outputsize
-	}
-	C.memmove(unsafe.Pointer(output), unsafe.Pointer(result), size)
-}
-
-//export goRVExtensionArgs
-func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv **C.char, argc C.int) {
-	var offset = unsafe.Sizeof(uintptr(0))
-	var out []string
-	for index := C.int(0); index < argc; index++ {
-		out = append(out, C.GoString(*argv))
-		argv = (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset))
-	}
-	temp := fmt.Sprintf("Function: %s nb params: %d params: %s!", C.GoString(input), argc, out)
-
 	// Return a result to Arma
 	result := C.CString(temp)
 	defer C.free(unsafe.Pointer(result))
