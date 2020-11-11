@@ -77,7 +77,7 @@ func returnMyData(input string, errors error) string {
 		rID = fmt.Sprintf(id)
 	case "version":
 		writeGUIDregistr()
-		rID = fmt.Sprintf("v2.00|11.11.20")
+		rID = fmt.Sprintf("v2.02|12.11.20")
 	case "errors":
 		rID = fmt.Sprintf("Error '%s'", errors)
 	case "serials":
