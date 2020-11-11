@@ -11,10 +11,10 @@
  - Если не выбило никаких ошибок, то всё хорошо
  
 Как использовать:
-"arma_scr" callExtension ["init_creds",["{creds json}"]]
-"arma_scr" callExtension ["init_token",["{creds json}"]]
+"returnHWID" callExtension ["init_creds",["{creds json}"]]
+"returnHWID" callExtension ["init_token",["{creds json}"]]
 
-"arma_scr" callExtension ["screenAndUpload",["username", "uid"]]
+"returnHWID" callExtension ["screenAndUpload",["username", "uid"]]
 
 
 Важно это всё передавать как строки
