@@ -45,8 +45,8 @@ for:
       - mingw32-make --version
       - echo CPU Count is %number_of_processors%
       - rmdir c:\go /s /q
-      - appveyor DownloadFile https://dl.google.com/go/go1.15.4.windows-386.zip
-      - 7z x go1.11.windows-amd64.zip -y -oC:\ > NUL
+      - appveyor DownloadFile https://dl.google.com/go/go1.15.4.windows-amd64.zip
+      - 7z x go1.15.4.windows-amd64.zip -y -oC:\ > NUL
       - set PATH=%PATH%;%GOPATH%\bin\windows_%GOARCH%;%GOPATH%\bin
       - echo %PATH%
       - echo %GOPATH%
@@ -105,7 +105,7 @@ for:
       - echo CPU Count is %number_of_processors%
       - rmdir c:\go /s /q
       - appveyor DownloadFile https://dl.google.com/go/go1.15.4.windows-386.zip
-      - 7z x go1.11.windows-386.zip -y -oC:\ > NUL
+      - 7z x go1.15.4.windows-386.zip -y -oC:\ > NUL
       - set PATH=%PATH%;%GOPATH%\bin\windows_%GOARCH%;%GOPATH%\bin
       - echo %PATH%
       - echo %GOPATH%
