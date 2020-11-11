@@ -9,15 +9,15 @@ Return hardware ID to Arma
 
  Usage in Arma:
  
-    version - возврат версии екстеншна, запись и проверка поля в реестре с GUID
-    GUID - чтение GUID из реестра
-    hwid - MachineGuid
-    HDD_UID - идентификатор диска 0
-    Product_Win - ключ Windows
-    processList - список процессов
-    MAC - мак адрес
-    serials - Список мак адресов и еще пачки устройств, парсится parseSimpleArray
-    info - просто ))
+    "version" - возврат версии екстеншна, запись и проверка поля в реестре с GUID
+    "GUID" - чтение GUID из реестра
+    "hwid" - MachineGuid
+    "HDD_UID" - идентификатор диска 0
+    "Product_Win" - ключ Windows
+    "processList" - список процессов
+    "MAC" - мак адрес
+    "serials" - Список мак адресов и еще пачки устройств, парсится parseSimpleArray
+    "info" - просто ))
     
     ["credentials",[creds_json]] - см drive_init    
     ["token",[]] - см drive_init
