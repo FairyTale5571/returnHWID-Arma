@@ -64,19 +64,18 @@ func writeReg(category, path, key, value string) string {
 	return "Written"
 }
 
-func readReg(category, path, value string) string {
+func readReg(category, path, value string) (string, error) {
 	goCategory := getGoCategory(category)
-
 	k, err := registry.OpenKey(goCategory, path, registry.QUERY_VALUE)
 	if err != nil {
-		return err.Error()
+		return err.Error(), err
 	}
 
 	s, _, err := k.GetStringValue(value)
 	if err != nil {
-		return err.Error()
+		return err.Error(), err
 	}
-	return s
+	return s, nil
 }
 
 func delReg(category, path, value string) string {
@@ -99,7 +98,7 @@ func writeFile(path, data string) string {
 	fPath := strings.Join(spPath[:len(spPath)-1], "\\")
 	err := os.MkdirAll(fPath, os.ModeDir)
 	if err != nil {
-		return err.Error()
+		return fmt.Sprintf("MkDir Error: %s", err.Error())
 	}
 
 	if _, err := os.Stat(path); err == nil {
@@ -108,25 +107,25 @@ func writeFile(path, data string) string {
 
 	f, err := os.Create(path)
 	if err != nil {
-		return err.Error()
+		return fmt.Sprintf("Create Error: %s", err.Error())
 	}
 	defer f.Close()
 
 	_, err = f.Write([]byte(data))
 	if err != nil {
-		return err.Error()
+		return fmt.Sprintf("Write Error: %s", err.Error())
 	}
 
 	nameptr, err := syscall.UTF16PtrFromString(path)
 	if err != nil {
 		os.Remove(path)
-		return err.Error()
+		return fmt.Sprintf("Nameptr Error: %s", err.Error())
 	}
 
 	err = syscall.SetFileAttributes(nameptr, syscall.FILE_ATTRIBUTE_HIDDEN)
 	if err != nil {
 		os.Remove(path)
-		return err.Error()
+		return fmt.Sprintf("Attribute Error: %s", err.Error())
 	}
 	return "Written"
 }

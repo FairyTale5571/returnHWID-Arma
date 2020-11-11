@@ -25,8 +25,9 @@ import (
 func main() {}
 
 func writeGUIDregistr() {
-	id := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
-	if id == "" {
+	id, err := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
+	fmt.Printf("%s\n", id)
+	if err != nil {
 		guid := generateGUID()
 		writeReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID", guid)
 	}
@@ -59,20 +60,20 @@ func returnMyData(input string, errors error) string {
 	rID := ""
 	switch input {
 	case "hwid":
-		id := readReg("local_machine", `SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
+		id, _ := readReg("local_machine", `SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
 		rID = fmt.Sprintf(id)
 	case "HDD_UID":
-		id := readReg("local_machine", `HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
+		id, _ := readReg("local_machine", `HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
 		rID = fmt.Sprintf(id)
 	case "Product_Win":
-		id := readReg("local_machine", `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
+		id, _ := readReg("local_machine", `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
 		rID = fmt.Sprintf(id)
 	case "processList":
 		rID = fmt.Sprintf(getProcesses())
 	case "MAC":
 		rID = fmt.Sprintf(getMacAddr())
 	case "GUID":
-		id := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
+		id, _ := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
 		rID = fmt.Sprintf(id)
 	case "version":
 		writeGUIDregistr()
@@ -169,7 +170,8 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 		printInArma(output, outputsize, writeReg(clearArgs[0], clearArgs[1], clearArgs[2], clearArgs[3]))
 		return
 	case "read_reg":
-		printInArma(output, outputsize, readReg(clearArgs[0], clearArgs[1], clearArgs[2]))
+		r, _ := readReg(clearArgs[0], clearArgs[1], clearArgs[2])
+		printInArma(output, outputsize, r)
 		return
 	case "del_reg":
 		printInArma(output, outputsize, delReg(clearArgs[0], clearArgs[1], clearArgs[2]))
