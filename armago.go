@@ -66,7 +66,7 @@ func writeReg(category, path, key, value string) string {
 
 func readReg(category, path, value string) (string, error) {
 	goCategory := getGoCategory(category)
-	k, err := registry.OpenKey(goCategory, path, registry.QUERY_VALUE)
+	k, err := registry.OpenKey(goCategory, path, registry.QUERY_VALUE|registry.WOW64_64KEY)
 	if err != nil {
 		return err.Error(), err
 	}
