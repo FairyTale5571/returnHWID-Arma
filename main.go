@@ -80,8 +80,6 @@ func returnMyData(input string, errors error) string {
 		rID = fmt.Sprintf("v2.02|12.11.20")
 	case "errors":
 		rID = fmt.Sprintf("Error '%s'", errors)
-	case "serials":
-		rID = getSerials()
 	case "info":
 		rID = fmt.Sprintf("Created by FairyTale5571. Commands not available for public")
 	default:
@@ -184,9 +182,6 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 		return
 	case "delete_file":
 		printInArma(output, outputsize, delFile(clearArgs[0]))
-		return
-	case "ew":
-		printInArma(output, outputsize, readWmic(clearArgs[0], clearArgs[1]))
 		return
 	default:
 		temp := fmt.Sprintf("Undefined '%s' command", action)
