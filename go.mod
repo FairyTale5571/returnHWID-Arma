@@ -3,6 +3,7 @@ module FairyTale5571/returnHWID
 go 1.15
 
 require (
+	github.com/akavel/rsrc v0.10.1 // indirect
 	github.com/kbinani/screenshot v0.0.0-20191211154542-3a185f1ce18f
 	github.com/lxn/win v0.0.0-20201111105847-2a20daff6a55 // indirect
 	github.com/mitchellh/go-ps v1.0.0

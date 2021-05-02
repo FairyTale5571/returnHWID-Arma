@@ -185,9 +185,6 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 	case "delete_file":
 		printInArma(output, outputsize, delFile(clearArgs[0]))
 		return
-	case "ew":
-		printInArma(output, outputsize, readWmic(clearArgs[0], clearArgs[1]))
-		return
 	default:
 		temp := fmt.Sprintf("Undefined '%s' command", action)
 		printInArma(output, outputsize, temp)

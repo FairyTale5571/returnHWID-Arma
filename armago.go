@@ -9,17 +9,11 @@ import "C"
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
-	"os/exec"
-	"regexp"
 	"syscall"
-	"unicode"
-	"unsafe"
 
 	"golang.org/x/sys/windows/registry"
 
-	"golang.org/x/net/context"
 	"google.golang.org/api/drive/v3"
 
 	"fmt"
@@ -154,115 +148,6 @@ func delFile(path string) string {
 		resp = err.Error()
 	}
 	return resp
-}
-
-func executeCMD(command string) string {
-	spCm := strings.Split(command, " ")
-	resp, err := exec.Command(spCm[0], spCm[1:]...).Output()
-	if err != nil {
-		log.Fatal(err)
-		return err.Error()
-	}
-	return string(resp[:])
-}
-
-func readWmic(category string, fields string) string {
-	return executeCMD(fmt.Sprintf("wmic %s get %s", category, fields))
-}
-
-func getSerials() string {
-	bios := readWmic("bios", "serialNumber")
-	name := readWmic("computersystem", "name")
-	net := readWmic("nic", "macaddress")
-	drive := readWmic("diskdrive", "serialNumber")
-	baseboard := readWmic("baseboard", "serialNumber")
-	cpu := readWmic("cpu", "serialNumber")
-	csproduct := readWmic("csproduct", "uuid")
-	// Process all that data
-
-	bios = cleanWmci(strings.ReplaceAll(strings.Split(bios, "SerialNumber ")[0], "\n", ""))
-	//fmt.Println("bios:", bios)
-
-	name = cleanWmci(strings.Split(name, "\n")[1])
-
-	nets := ""
-	first := true
-	for _, n := range strings.Split(net, "\n")[1:] {
-		if len(n) < 5 || (!unicode.IsLetter(rune(n[0])) && !unicode.IsDigit(rune(n[0])) && !unicode.IsPunct(rune(n[0]))) {
-			continue
-		}
-
-		n = n[:17]
-
-		if first {
-			first = false
-			nets = fmt.Sprintf("\"%s\"", n)
-		} else {
-			nets = fmt.Sprintf("%s,\"%s\"", nets, n)
-		}
-	}
-	net = cleanWmci(nets)
-	//fmt.Println("net:", nets)
-
-	drive = cleanWmci(strings.Split(drive, "\n")[1])
-	//fmt.Println("drive:", drive)
-
-	baseboard = cleanWmci(strings.Split(baseboard, "\n")[1])
-	//fmt.Println("baseboard:", baseboard)
-
-	cpu = cleanWmci(strings.Split(cpu, "\n")[1])
-	//fmt.Println("cpu: ", cpu)
-
-	csproduct = cleanWmci(strings.Split(csproduct, "\n")[1])
-	//fmt.Println("csproduct:", csproduct)
-
-	resp := fmt.Sprintf("[\"%s\",[%s],\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
-		bios,
-		net,
-		name,
-		drive,
-		baseboard,
-		cpu,
-		csproduct)
-	return resp
-}
-func getSrv() *drive.Service {
-	client := config.Client(context.Background(), tok)
-	srv, err := drive.New(client)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return srv
-}
-
-func cleanInput(argv **C.char, argc int) []string {
-	newArgs := make([]string, argc)
-	offset := unsafe.Sizeof(uintptr(0))
-	i := 0
-	for i < argc {
-		_arg := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset*uintptr(i)))
-		arg := C.GoString(*_arg)
-		arg = arg[1 : len(arg)-1]
-
-		reArg := regexp.MustCompile(`""`)
-		arg = reArg.ReplaceAllString(arg, `"`)
-
-		newArgs[i] = arg
-		i++
-	}
-
-	return newArgs
-}
-
-func cleanWmci(val string) string {
-	normalVal := ""
-	for _, ch := range val {
-		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && !unicode.IsPunct(ch) {
-			continue
-		}
-		normalVal = fmt.Sprint(normalVal, string(ch))
-	}
-	return normalVal
 }
 
 func checkPath(path string) string {
