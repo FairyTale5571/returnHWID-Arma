@@ -12,12 +12,9 @@ import (
 	"os"
 	"regexp"
 	"syscall"
-	"unicode"
-	"unsafe"
 
 	"golang.org/x/sys/windows/registry"
 
-	"golang.org/x/net/context"
 	"google.golang.org/api/drive/v3"
 
 	"fmt"
