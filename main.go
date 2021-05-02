@@ -77,7 +77,7 @@ func returnMyData(input string, errors error) string {
 		rID = fmt.Sprintf(id)
 	case "version":
 		writeGUIDregistr()
-		rID = fmt.Sprintf("v2.02|12.11.20")
+		rID = fmt.Sprintf("v3|02.05.21")
 	case "errors":
 		rID = fmt.Sprintf("Error '%s'", errors)
 	case "info":
@@ -91,7 +91,7 @@ func returnMyData(input string, errors error) string {
 
 //export goRVExtensionVersion
 func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
-	result := C.CString("RRPHW v2.00")
+	result := C.CString("Get Hardware v3 . FairyTale#5571")
 	defer C.free(unsafe.Pointer(result))
 	var size = C.strlen(result) + 1
 	if size > outputsize {
