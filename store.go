@@ -1,7 +1,9 @@
 package main
+
 import (
-	"golang.org/x/oauth2"
 	"time"
+
+	"golang.org/x/oauth2"
 )
 
 var token, token_refresh, token_type string

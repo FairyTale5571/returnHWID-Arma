@@ -8,10 +8,13 @@ package main
 import "C"
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"regexp"
 	"syscall"
+	"unicode"
+	"unsafe"
 
 	"golang.org/x/sys/windows/registry"
 
