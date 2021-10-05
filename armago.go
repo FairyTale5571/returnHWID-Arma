@@ -24,6 +24,16 @@ import (
 	"strings"
 )
 
+func printInArma(output *C.char, outputsize C.size_t, input string) {
+	result := C.CString(input)
+	defer C.free(unsafe.Pointer(result))
+	var size = C.strlen(result) + 1
+	if size > outputsize {
+		size = outputsize
+	}
+	C.memmove(unsafe.Pointer(output), unsafe.Pointer(result), size)
+}
+
 func getGoCategory(category string) registry.Key {
 	var goCategory registry.Key
 	switch strings.ToLower(category) {
@@ -38,7 +48,7 @@ func getGoCategory(category string) registry.Key {
 	case "current_config":
 		goCategory = registry.CURRENT_CONFIG
 	default:
-		fmt.Println("Unsupported category")
+		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getGoCategory | Unsupported category "))
 	}
 	return goCategory
 }

