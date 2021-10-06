@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"runtime"
 	"time"
 	"unsafe"
 
@@ -55,6 +56,8 @@ func goRVExtensionRegisterCallback(fnc C.extensionCallback) {
 func returnMyData(input string, errors error) string {
 
 	switch input {
+	case "goarch":
+		return runtime.GOARCH
 	case "checkDRM":
 		if !DRMUnlocked {
 			return "NO"
