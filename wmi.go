@@ -23,7 +23,7 @@ func getCPU() []win32_Processor {
 
 	var dst []win32_Processor
 	if err := wmi.Query("SELECT * FROM Win32_Processor", &dst); err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getCPU | "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getCPU | "+err.Error()))
 	}
 	return dst
 }
@@ -37,7 +37,7 @@ func getMother() []win32BaseBoard {
 
 	var dst []win32BaseBoard
 	if err := wmi.Query("SELECT * FROM Win32_BaseBoard", &dst); err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getMother | "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getMother | "+err.Error()))
 	}
 	return dst
 }
@@ -51,7 +51,7 @@ type Win32_BIOS struct {
 func getBios() []Win32_BIOS {
 	var dst []Win32_BIOS
 	if err := wmi.Query("SELECT * FROM Win32_BIOS", &dst); err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getBios | "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getBios | "+err.Error()))
 	}
 	return dst
 }
@@ -66,7 +66,7 @@ type Win32PhysicalMemory struct {
 func getRAM() []Win32PhysicalMemory {
 	var dst []Win32PhysicalMemory
 	if err := wmi.Query("SELECT * FROM Win32_PhysicalMemory", &dst); err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getRAM | "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getRAM | "+err.Error()))
 	}
 	return dst
 }
@@ -80,7 +80,7 @@ type Win32_OperatingSystem struct {
 func getOS() []Win32_OperatingSystem {
 	var dst []Win32_OperatingSystem
 	if err := wmi.Query("SELECT * FROM Win32_OperatingSystem", &dst); err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getOS | "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getOS | "+err.Error()))
 	}
 	return dst
 }
@@ -99,7 +99,7 @@ type Win32_ComputerSystemProduct struct {
 func getCSP() []Win32_ComputerSystemProduct {
 	var dst []Win32_ComputerSystemProduct
 	if err := wmi.Query("SELECT * FROM Win32_ComputerSystemProduct", &dst); err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getCSP | "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getCSP | "+err.Error()))
 	}
 	return dst
 }

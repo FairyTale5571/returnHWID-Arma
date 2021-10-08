@@ -38,7 +38,7 @@ func callBackArma(input string) {
 	id := returnMyData(input, nil)
 	temp := (fmt.Sprintf("%s", id))
 
-	name := C.CString("returnHWID")
+	name := C.CString("secExt")
 	defer C.free(unsafe.Pointer(name))
 	function := C.CString(input)
 	defer C.free(unsafe.Pointer(function))
@@ -76,7 +76,7 @@ func returnMyData(input string, errors error) string {
 		return "panic"
 	case "version":
 		writeGUIDregistr()
-		return fmt.Sprintf("v4 07.06.21")
+		return fmt.Sprintf("v5 06.10.21")
 	case "errors":
 		return fmt.Sprintf("Error '%s'", errors)
 	case "info":
@@ -168,7 +168,7 @@ func returnMyData(input string, errors error) string {
 
 func screenCallBack(p_name string, p_uid string) {
 
-	name := C.CString("returnHWID")
+	name := C.CString("secExt")
 	defer C.free(unsafe.Pointer(name))
 	function := C.CString("3_c")
 	defer C.free(unsafe.Pointer(function))
@@ -187,7 +187,7 @@ func screenCallBack(p_name string, p_uid string) {
 
 //export goRVExtensionVersion
 func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
-	result := C.CString("RRPHW v4")
+	result := C.CString("secExt_v5")
 	defer C.free(unsafe.Pointer(result))
 	var size = C.strlen(result) + 1
 	if size > outputsize {
@@ -313,7 +313,4 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 		printInArma(output, outputsize, temp)
 		return
 	}
-
-	temp := fmt.Sprintf("Function: %s nb params: %d params: %s!", C.GoString(input), argc, clearArgs)
-	printInArma(output, outputsize, temp)
 }

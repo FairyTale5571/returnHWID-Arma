@@ -4,8 +4,9 @@ import "C"
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/toast.v1"
 	"unicode"
+
+	"gopkg.in/toast.v1"
 )
 
 func CleanStr(str string) string {
@@ -24,16 +25,16 @@ func CleanStr(str string) string {
 func SendToast(args ...string) string {
 
 	notification := toast.Notification{
-		AppID: CleanStr(args[0]),
-		Title: CleanStr(args[1]),
-		Message: CleanStr(args[2]),
-		Icon: CleanStr(args[3]),
-		Loop: false,
+		AppID:    CleanStr(args[0]),
+		Title:    CleanStr(args[1]),
+		Message:  CleanStr(args[2]),
+		Icon:     CleanStr(args[3]),
+		Loop:     false,
 		Duration: "short",
 	}
 	err := notification.Push()
 	if err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("WinToast | "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("WinToast | "+err.Error()))
 	}
 	return "Sended"
 }

