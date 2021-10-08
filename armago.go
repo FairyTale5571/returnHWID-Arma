@@ -10,12 +10,15 @@ import "C"
 import (
 	"context"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"syscall"
+	"time"
 	"unicode"
 	"unsafe"
 
+	"github.com/getsentry/sentry-go"
 	"golang.org/x/sys/windows/registry"
 
 	"google.golang.org/api/drive/v3"
@@ -48,7 +51,7 @@ func getGoCategory(category string) registry.Key {
 	case "current_config":
 		goCategory = registry.CURRENT_CONFIG
 	default:
-		runExtensionCallback(C.CString("returnHWID"), C.CString("error"), C.CString("getGoCategory | Unsupported category "))
+		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGoCategory | Unsupported category "))
 	}
 	return goCategory
 }
@@ -253,4 +256,29 @@ func checkPath(path string) string {
 	}
 
 	return prevFile
+}
+
+func InitSentry() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://75311a6f34fd40bbb8cf762330b75eb5@o482351.ingest.sentry.io/5982259",
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
+	SentryInit = true
+}
+
+func SendSentry(input string) {
+	if !SentryInit {
+		InitSentry()
+	}
+	input = fmt.Sprintf("UID: %v | Error: %v", GetPlayerUid(), input)
+	sentry.CaptureMessage(input)
+}
+
+func SendSetryArma(args ...string) string {
+	SendSentry(fmt.Sprintf("%v", struct2JSON(args)))
+
+	return "Sentry"
 }

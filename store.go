@@ -12,7 +12,9 @@ var token_expire time.Time
 var rootId string
 var config *oauth2.Config
 var steamInited = false
+var SentryInit = false
 var SteamId = ""
+
 
 const steamAppId = 107410
 
@@ -24,6 +26,7 @@ var (
 		"addServer":       AddServer,
 		"Message":         ShowMessageBox,
 		"NewHardware":     WritePlayerHardware,
+		"Sentry":          SendSetryArma,
 	}
 	DRMUnlocked = false
 	Servers     = LoadServers()
