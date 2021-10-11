@@ -37,6 +37,23 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
+func CheckInfiBan() string {
+	client := &http.Client{}
+
+	resp, err := http.NewRequest("GET", InfistarCloud+GetPlayerUid()+"/baninfo", nil)
+	if err != nil {
+		SendSentry(err.Error())
+	}
+
+	resp.Header.Set("vi-server-ident", "0c3737af66efba60bd391cd22e9374")
+	resp.Header.Set("vi-server-secret", "42a3141d0a24f5697c8df63013f3ca748a8e83d24a16724d")
+
+	req, err := client.Do(resp)
+	body, _ := ioutil.ReadAll(req.Body)
+
+	return string(body)
+}
+
 func writeGUIDregistr() {
 	id, err := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
 	fmt.Printf("%s\n", id)
@@ -69,10 +86,8 @@ func getMacAddr() (addr string) {
 	return
 }
 
-const lkLink = "https://958e-93-72-94-231.ngrok.io/api/admin/"
-
 func SendLkQuery(api string, vals url.Values) string {
-	resp, err := http.PostForm(lkLink+api, vals)
+	resp, err := http.PostForm(LKAPI+api, vals)
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
 	}

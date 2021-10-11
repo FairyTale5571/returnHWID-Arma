@@ -65,6 +65,8 @@ func returnMyData(input string, errors error) string {
 		return "YES"
 	case "getPlayerUID":
 		return GetPlayerUid()
+	case "checkInfiBan":
+		return CheckInfiBan()
 	case "isBan":
 		return fmt.Sprintf("%s", CheckBan())
 	case "close":

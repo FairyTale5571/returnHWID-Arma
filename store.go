@@ -15,6 +15,8 @@ var steamInited = false
 var SentryInit = false
 var SteamId = ""
 
+const InfistarCloud = "https://api.infistar.vision/v1/cloudban/"
+const LKAPI = "https://958e-93-72-94-231.ngrok.io/api/admin/"
 
 const steamAppId = 107410
 
