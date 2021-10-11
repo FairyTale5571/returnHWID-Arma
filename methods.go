@@ -43,6 +43,11 @@ func CheckInfiBan() string {
 	}
 	client := &http.Client{}
 
+	type Vision struct {
+		status  bool
+		message string
+	}
+
 	resp, err := http.NewRequest("GET", InfistarCloud+GetPlayerUid()+"/baninfo", nil)
 	if err != nil {
 		SendSentry(err.Error())
@@ -53,7 +58,13 @@ func CheckInfiBan() string {
 	req, err := client.Do(resp)
 	body, _ := ioutil.ReadAll(req.Body)
 
-	return string(body)
+	var t Vision
+	err = json.Unmarshal(body, &t)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(t.status)
+	return t.message
 }
 
 func writeGUIDregistr() {
