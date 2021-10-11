@@ -38,15 +38,17 @@ import (
 )
 
 func CheckInfiBan() string {
+	if !InfiInited {
+		return "Cloud ban need init"
+	}
 	client := &http.Client{}
 
 	resp, err := http.NewRequest("GET", InfistarCloud+GetPlayerUid()+"/baninfo", nil)
 	if err != nil {
 		SendSentry(err.Error())
 	}
-
-	resp.Header.Set("vi-server-ident", "0c3737af66efba60bd391cd22e9374")
-	resp.Header.Set("vi-server-secret", "42a3141d0a24f5697c8df63013f3ca748a8e83d24a16724d")
+	resp.Header.Set("vi-server-ident", IV_PUBLIC)
+	resp.Header.Set("vi-server-secret", IV_PRIVATE)
 
 	req, err := client.Do(resp)
 	body, _ := ioutil.ReadAll(req.Body)

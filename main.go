@@ -223,6 +223,16 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 	}
 
 	switch action {
+	case "initInfistarVision":
+		if len(clearArgs) != 2 {
+			printInArma(output, outputsize, fmt.Sprintf("Required 2 params, input %d", len(clearArgs)))
+			return
+		}
+		IV_PUBLIC = clearArgs[0]
+		IV_PRIVATE = clearArgs[1]
+		InfiInited = true
+		printInArma(output, outputsize, "Key accepted")
+		return
 	case "1_c": // credentials
 		var err error
 		_creds_json := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
