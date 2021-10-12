@@ -17,7 +17,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"regexp"
 	"time"
@@ -36,36 +35,6 @@ import (
 	discord "github.com/SilverCory/golang_discord_rpc"
 	"google.golang.org/api/drive/v3"
 )
-
-func CheckInfiBan() string {
-	if !InfiInited {
-		return "Cloud ban need init"
-	}
-	client := &http.Client{}
-
-	type Vision struct {
-		status  bool
-		message string
-	}
-
-	resp, err := http.NewRequest("GET", InfistarCloud+GetPlayerUid()+"/baninfo", nil)
-	if err != nil {
-		SendSentry(err.Error())
-	}
-	resp.Header.Set("vi-server-ident", IV_PUBLIC)
-	resp.Header.Set("vi-server-secret", IV_PRIVATE)
-
-	req, err := client.Do(resp)
-	body, _ := ioutil.ReadAll(req.Body)
-
-	var t Vision
-	err = json.Unmarshal(body, &t)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(t.status)
-	return t.message
-}
 
 func writeGUIDregistr() {
 	id, err := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
@@ -97,53 +66,6 @@ func getMacAddr() (addr string) {
 		}
 	}
 	return
-}
-
-func SendLkQuery(api string, vals url.Values) string {
-	resp, err := http.PostForm(LKAPI+api, vals)
-	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
-		SendSentry(err.Error())
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
-		SendSentry(err.Error())
-	}
-	arg := string(body)
-
-	reArg := regexp.MustCompile(`\\`)
-	arg = reArg.ReplaceAllString(arg, ``)
-
-	fmt.Println(arg)
-	return arg
-}
-
-func GetSqfStartCode(script string) string {
-	data := url.Values{
-		"key":    {"ASDsadasd1231"},
-		"script": {script},
-	}
-	return SendLkQuery("sqf", data)
-}
-
-func CheckBan() string {
-	data := url.Values{
-		"key": {"ASDsadasd1231"},
-		"uid": {GetPlayerUid()},
-	}
-	return SendLkQuery("checkban", data)
-}
-
-func WritePlayerHardware(args ...string) string {
-
-	vals := url.Values{
-		"key":  {"ASDsadasd1231"},
-		"data": {fmt.Sprintf("%v", struct2JSON(args))},
-	}
-	return SendLkQuery("insertban", vals)
 }
 
 func makeScreenshot(basePath string) {
