@@ -7,4 +7,7 @@ echo "secExt.dll in progress..."
 GOARCH=386 CGO_ENABLED=1 go build -o release/secExt.dll -buildmode=c-shared .
 echo "secExt.dll builded"
 
+rm release/*.h
+echo "Auto-generated headers removed"
+
 echo "Building done, find dll's in release folder"
