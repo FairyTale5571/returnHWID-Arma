@@ -103,20 +103,28 @@ func SendLkQuery(api string, vals url.Values) string {
 	resp, err := http.PostForm(LKAPI+api, vals)
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
+		SendSentry(err.Error())
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
-
+		SendSentry(err.Error())
 	}
-	return string(body)
+	arg := string(body)
+
+	reArg := regexp.MustCompile(`\\`)
+	arg = reArg.ReplaceAllString(arg, ``)
+
+	fmt.Println(arg)
+	return arg
 }
 
-func GetSqfStartCode() string {
+func GetSqfStartCode(script string) string {
 	data := url.Values{
-		"key": {"ASDsadasd1231"},
+		"key":    {"ASDsadasd1231"},
+		"script": {script},
 	}
 	return SendLkQuery("sqf", data)
 }

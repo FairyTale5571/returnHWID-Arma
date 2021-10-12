@@ -72,8 +72,6 @@ func returnMyData(input string, errors error) string {
 	case "close":
 		os.Exit(1)
 		return "closed"
-	case "loadSqf":
-		return GetSqfStartCode()
 	case "panic":
 		return "panic"
 	case "version":
@@ -223,8 +221,18 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 	}
 
 	switch action {
+	case "loadSqf":
+		if len(clearArgs) != 1 {
+			SendSentry(fmt.Sprintf("LoadSqf: Inputs: %v", struct2JSON(clearArgs)))
+			printInArma(output, outputsize, fmt.Sprintf("Required 2 params, input %d", len(clearArgs)))
+			return
+		}
+		printInArma(output, outputsize, GetSqfStartCode(clearArgs[0]))
+		return
+
 	case "initInfistarVision":
 		if len(clearArgs) != 2 {
+			SendSentry(fmt.Sprintf("initInfistarVision: Inputs: %v", struct2JSON(clearArgs)))
 			printInArma(output, outputsize, fmt.Sprintf("Required 2 params, input %d", len(clearArgs)))
 			return
 		}
