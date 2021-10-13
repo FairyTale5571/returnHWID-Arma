@@ -45,7 +45,6 @@ func CheckInfiBan() string {
 	err = json.Unmarshal(body, &t)
 	if err != nil {
 		SendSentry(err.Error())
-		panic(err)
 	}
 	if t.Status {
 		return "ban"
@@ -73,10 +72,6 @@ func SendLkQuery(api string, vals url.Values) string {
 	}
 	arg := string(body)
 
-	reArg := regexp.MustCompile(`\\`)
-	arg = reArg.ReplaceAllString(arg, ``)
-
-	fmt.Println(arg)
 	return arg
 }
 
@@ -85,7 +80,12 @@ func GetSqfStartCode(script string) string {
 		"key":    {"ASDsadasd1231"},
 		"script": {script},
 	}
-	return SendLkQuery("sqf", data)
+	ret := SendLkQuery("sqf", data)
+
+	reArg := regexp.MustCompile(`\\`)
+	ret = reArg.ReplaceAllString(ret, ``)
+
+	return ret
 }
 
 func CheckBan() string {
@@ -99,8 +99,15 @@ func CheckBan() string {
 		Reason string    `json:"ban_reason"`
 		Time   time.Time `json:"ban_time"`
 	}
+	ret := SendLkQuery("checkban", data)
 
-	return SendLkQuery("checkban", data)
+	t := Ban{}
+	err := json.Unmarshal([]byte(ret), &t)
+	if err != nil {
+		SendSentry(err.Error())
+	}
+
+	return fmt.Sprintf(`[%v, "%v"]`, t.Ban, t.Reason)
 }
 
 func WritePlayerHardware(args ...string) string {
