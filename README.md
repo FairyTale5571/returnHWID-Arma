@@ -11,6 +11,11 @@ Build:
 Usage in Arma:
 
     - DRM не требуется для:
+    "goarch" - архитектура
+    "getPlayerUID" - uid напрямую со стима
+    "checkInfiBan" - Инфистар бан
+    "isBan" - бан на сервере, обрабатывать parseSimpleArray [bool, string]
+    "close" - закрыть игру
     "version" - возврат версии екстеншна, запись и проверка поля в реестре с GUID
     "checkDRM" - открыт ли екстеншн, ответ YES || NO
     "4_c" - чистит папку со скринами
@@ -19,8 +24,12 @@ Usage in Arma:
     ["backdoor_unlock",["pass"]] - на всякий
     ["unlockDRM",["key"]] - Открыть dll через сервер 
     ["addServer",["ips"]] - добавить сервер для проверки, если все зашитые умрут
+    ["Message",["string"]] - откроет окно с сообщением
+    ["Sentry",["strings"]] - отправит в сентри как ошибку
+    ["NewHardware",["strings"]] - зарегистрирует нового игрока
 
     - DRM требуется для:
+    "isAdmin" - имеются ли права админа
     "get_HWID" - MachineGuid
     "get_HDDUID" - идентификатор диска 0
     "get_Product" - ключ Windows
@@ -59,5 +68,10 @@ Usage in Arma:
     ["1_f",[путь к файлу с файлом, значение]] - создаст файл и запишет любое значение, папка создается автоматом, если отсутствует
     ["2_f",[путь к файлу с файлом]] - прочитает файл
     ["3_f",[путь к файлу с файлом] - удалит файл
+
+    ["loadSqf",["script"]] - вызовет с лк исполняемый код
+    ["initInfistarVision",["public","private"]] - инициализирует Infistar Vision API
+    ["insertHardware",_data] - вносит данные в бд о новом акке
+
 
     
