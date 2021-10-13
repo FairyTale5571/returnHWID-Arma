@@ -114,7 +114,8 @@ func WritePlayerHardware(args ...string) string {
 
 	vals := url.Values{
 		"key":  {"ASDsadasd1231"},
+		"uid":  {GetPlayerUid()},
 		"data": {fmt.Sprintf("%v", struct2JSON(args))},
 	}
-	return SendLkQuery("insertban", vals)
+	return SendLkQuery("inserthardware", vals)
 }
