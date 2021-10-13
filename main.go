@@ -72,8 +72,6 @@ func returnMyData(input string, errors error) string {
 	case "close":
 		os.Exit(1)
 		return "closed"
-	case "panic":
-		return "panic"
 	case "version":
 		writeGUIDregistr()
 		return fmt.Sprintf("v5 06.10.21")
