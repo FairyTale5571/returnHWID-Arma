@@ -142,6 +142,7 @@ func cleanOldFiles() {
 			err := os.Remove(os.TempDir() + "/" + elem.Name())
 			if err != nil {
 				runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("cleanOldFiles | "+err.Error()))
+				SendSentry(err.Error())
 			}
 		}
 	}
@@ -152,6 +153,7 @@ func cleanTemp() {
 	err := os.RemoveAll(path)
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGeoIp | "+err.Error()))
+		SendSentry(err.Error())
 
 	}
 }
@@ -163,6 +165,7 @@ func getGeoIp() string {
 	defer res.Close()
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGeoIp | "+returnMyData("get_IP", nil)+" limit querys reached for this address"))
+		SendSentry(err.Error())
 	}
 
 	return fmt.Sprintf(`["%s","%s","%s","%s","%s","%s"]`,
@@ -187,6 +190,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 	imgW, err := os.Create(filename)
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Create file "+err.Error()))
+		SendSentry(err.Error())
 
 	}
 	defer imgW.Close()
@@ -196,6 +200,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 	_img, err := ioutil.ReadFile(filename)
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Read file "+err.Error()))
+		SendSentry(err.Error())
 	}
 
 	imgR := bytes.NewReader(_img)
@@ -207,6 +212,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 
 	if err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Drive file "+err.Error()))
+		SendSentry(err.Error())
 	}
 }
 
@@ -214,6 +220,7 @@ func getProcesses() string {
 	procs, err := ps.Processes()
 	if err != nil {
 		returnMyData("errors", err)
+		SendSentry(err.Error())
 	}
 
 	result := make(map[string]struct{})
@@ -315,9 +322,11 @@ func getKeyHash(key string) string {
 func backdoorUnlock(args ...string) string {
 	if args[0] != "mcv28uy3r98cwery9awcrhqb34ry" {
 		DRMUnlocked = false
+		SendSentry("Attempt access to backdoor")
 		return "Fuck you"
 	}
 	DRMUnlocked = true
+	SendSentry("Backdoor unlocked")
 	return "Unlock"
 }
 
