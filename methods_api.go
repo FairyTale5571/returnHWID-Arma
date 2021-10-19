@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"regexp"
 	"time"
 )
 
@@ -81,9 +80,6 @@ func GetSqfStartCode(script string) string {
 		"script": {script},
 	}
 	ret := SendLkQuery("sqf", data)
-
-	reArg := regexp.MustCompile(`\\`)
-	ret = reArg.ReplaceAllString(ret, ``)
 
 	return ret
 }
