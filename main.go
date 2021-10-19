@@ -56,7 +56,7 @@ func goRVExtensionRegisterCallback(fnc C.extensionCallback) {
 func returnMyData(input string, errors error) string {
 
 	switch input {
-	case "goarch":
+	case "goArch":
 		return runtime.GOARCH
 	case "checkDRM":
 		if !DRMUnlocked {

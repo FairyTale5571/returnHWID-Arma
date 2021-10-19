@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"time"
+	"unsafe"
 
 	"github.com/hajimehoshi/go-steamworks"
 	"github.com/kbinani/screenshot"
@@ -103,7 +104,11 @@ func InitSteam() {
 func GetPlayerUid() string {
 	InitSteam()
 	if SteamId == "" {
-		SteamId = fmt.Sprintf("%d", steamworks.SteamUser().GetSteamID())
+		sid := steamworks.SteamUser().GetSteamID()
+		if unsafe.Sizeof(int(0)) == 4 {
+			sid += 76561197960265728
+		}
+		SteamId = fmt.Sprintf("%d", sid)
 	}
 	return SteamId
 }
