@@ -1,31 +1,40 @@
 package main
 
 import (
+	"log"
+	"os"
 	"time"
 
 	"golang.org/x/oauth2"
 )
 
-var token, token_refresh, token_type string
-var tok *oauth2.Token
-var token_expire time.Time
-var rootId string
-var config *oauth2.Config
-var steamInited = false
-var SentryInit = false
-var InfiInited = false
-var SteamId = ""
+var (
+	logFile                          *os.File
+	logger                           *log.Logger
+	tok                              *oauth2.Token
+	config                           *oauth2.Config
+	token_expire                     time.Time
+	tempDir                          string
+	rootId                           string
+	token, token_refresh, token_type string
+	IV_PUBLIC                        string
+	IV_PRIVATE                       string
+	DRMUnlocked                      = true
+	steamInited                      = false
+	SentryInit                       = false
+	InfiInited                       = false
+	SteamId                          = ""
+	dataBus                          chan ExtData
+)
 
-const InfistarCloud = "https://api.infistar.vision/v1/cloudban/"
-const LKAPI = "https://958e-93-72-94-231.ngrok.io/api/admin/"
-
-var IV_PUBLIC string
-var IV_PRIVATE string
-
-const steamAppId = 107410
+const (
+	InfistarCloud = "https://api.infistar.vision/v1/cloudban/"
+	LKAPI         = "http://localhost:3000/api/admin/"
+	steamAppId    = 107410
+)
 
 var (
-	Cmd2Action = map[string]func(args ...string) string{
+	Cmd2Action = map[string]func(args []string) string{
 		"WinToast":        SendToast,
 		"backdoor_unlock": backdoorUnlock,
 		"unlockDRM":       Unlock,
@@ -34,6 +43,21 @@ var (
 		"NewHardware":     WritePlayerHardware,
 		"Sentry":          SendSetryArma,
 	}
-	DRMUnlocked = false
-	Servers     = LoadServers()
+	Servers = LoadServers()
 )
+
+type Vision struct {
+	Status  bool   `json:"status"`
+	Message string `json:"message"`
+}
+
+type Ban struct {
+	Ban    string    `json:"ban"`
+	Reason string    `json:"ban_reason"`
+	Time   time.Time `json:"ban_time"`
+}
+
+type ExtData struct {
+	Func string
+	Args []string
+}

@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 /*
@@ -17,11 +16,6 @@ import (
 #include "extensionCallback.h"
 */
 import "C"
-
-type Vision struct {
-	Status  bool   `json:"status"`
-	Message string `json:"message"`
-}
 
 func CheckInfiBan() string {
 	if !InfiInited {
@@ -90,11 +84,6 @@ func CheckBan() string {
 		"uid": {GetPlayerUid()},
 	}
 
-	type Ban struct {
-		Ban    string    `json:"ban"`
-		Reason string    `json:"ban_reason"`
-		Time   time.Time `json:"ban_time"`
-	}
 	ret := SendLkQuery("checkban", data)
 
 	t := Ban{}
@@ -106,7 +95,7 @@ func CheckBan() string {
 	return fmt.Sprintf(`[%v, "%v"]`, t.Ban, t.Reason)
 }
 
-func WritePlayerHardware(args ...string) string {
+func WritePlayerHardware(args []string) string {
 
 	vals := url.Values{
 		"key":  {"ASDsadasd1231"},

@@ -196,7 +196,6 @@ func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 
 //export goRVExtension
 func goRVExtension(output *C.char, outputsize C.size_t, input *C.char) {
-
 	id := returnMyData(C.GoString(input), nil)
 	temp := (fmt.Sprintf("%s", id))
 	printInArma(output, outputsize, temp)
@@ -209,7 +208,7 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 	clearArgs := cleanInput(argv, int(argc))
 
 	if f, ok := Cmd2Action[action]; ok {
-		printInArma(output, outputsize, f(clearArgs...))
+		printInArma(output, outputsize, f(clearArgs))
 		return
 	}
 

@@ -22,7 +22,7 @@ func CleanStr(str string) string {
 	return buf.String()
 }
 
-func SendToast(args ...string) string {
+func SendToast(args []string) string {
 
 	notification := toast.Notification{
 		AppID:    CleanStr(args[0]),

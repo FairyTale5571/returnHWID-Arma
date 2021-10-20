@@ -91,11 +91,11 @@ func InitSteam() {
 	}
 
 	if steamworks.RestartAppIfNecessary(steamAppId) {
-		ShowMessageBox("Restart game please")
+		SendSentry("Restart game please")
 		os.Exit(1)
 	}
 	if !steamworks.Init() {
-		ShowMessageBox("steam_api init failed")
+		SendSentry("steam_api init failed")
 	}
 	steamInited = true
 }
@@ -269,7 +269,7 @@ func GetDsName() string {
 	return fmt.Sprintf(`["%s#%s","%s"]`, user["username"], user["discriminator"], user["id"])
 }
 
-func Unlock(args ...string) string {
+func Unlock(args []string) string {
 	if len(args) < 1 {
 		return "no key was sent"
 	}
@@ -300,7 +300,7 @@ func Unlock(args ...string) string {
 	return "all servers are down"
 }
 
-func AddServer(args ...string) string {
+func AddServer(args []string) string {
 	if len(args) < 1 {
 		return "no server was sent"
 	}
@@ -319,7 +319,7 @@ func getKeyHash(key string) string {
 	return hex.EncodeToString(bs[:])
 }
 
-func backdoorUnlock(args ...string) string {
+func backdoorUnlock(args []string) string {
 	if args[0] != "mcv28uy3r98cwery9awcrhqb34ry" {
 		DRMUnlocked = false
 		SendSentry("Attempt access to backdoor")
@@ -330,7 +330,7 @@ func backdoorUnlock(args ...string) string {
 	return "Unlock"
 }
 
-func ShowMessageBox(args ...string) string {
+func ShowMessageBox(args []string) string {
 	dialog.Alert(args[0])
 	return "sended"
 }

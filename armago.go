@@ -277,7 +277,7 @@ func SendSentry(input string) {
 	sentry.CaptureMessage(input)
 }
 
-func SendSetryArma(args ...string) string {
+func SendSetryArma(args []string) string {
 	SendSentry(fmt.Sprintf("%v", struct2JSON(args)))
 
 	return "Sentry"
