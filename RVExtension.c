@@ -1,6 +1,4 @@
-  
 #include <stdlib.h>
-
 #include "extensionCallback.h"
 
 extern void goRVExtension(char *output, size_t outputSize, char *input);

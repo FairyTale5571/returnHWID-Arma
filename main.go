@@ -67,7 +67,7 @@ func returnMyData(input string, errors error) string {
 		return GetPlayerUid()
 	case "checkInfiBan":
 		return CheckInfiBan()
-	case "isBan":
+	case "isBan": // oops
 		return fmt.Sprintf("%s", CheckBan())
 	case "close":
 		os.Exit(1)
@@ -276,7 +276,7 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 		}
 		printInArma(output, outputsize, "Token accepted")
 		return
-	case "3_c_t":
+	case "3_c":
 		_name := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
 		_uid := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset))
 
@@ -287,24 +287,6 @@ func goRVExtensionArgs(output *C.char, outputsize C.size_t, input *C.char, argv 
 		time.Sleep(5 * time.Second)
 		makeScreenshot(path)
 		printInArma(output, outputsize, "Done")
-		return
-	case "3_c": // doit
-
-		_name := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv))))
-		_uid := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(argv)) + offset))
-
-		name := C.GoString(*_name)
-		uid := C.GoString(*_uid)
-
-		if extensionCallbackFnc != nil {
-			screenCallBack(name, uid)
-		} else {
-
-			path := fmt.Sprintf("/%s_%s", name[1:len(name)-1], uid[1:len(uid)-1])
-			time.Sleep(5 * time.Second)
-			makeScreenshot(path)
-			printInArma(output, outputsize, "Done")
-		}
 		return
 	case "1_r": // write_reg
 		printInArma(output, outputsize, writeReg(clearArgs[0], clearArgs[1], clearArgs[2], clearArgs[3]))
