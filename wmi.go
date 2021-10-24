@@ -8,6 +8,8 @@ package main
 import "C"
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/StackExchange/wmi"
@@ -100,6 +102,33 @@ func getCSP() []Win32_ComputerSystemProduct {
 	var dst []Win32_ComputerSystemProduct
 	if err := wmi.Query("SELECT * FROM Win32_ComputerSystemProduct", &dst); err != nil {
 		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getCSP | "+err.Error()))
+	}
+	return dst
+}
+
+type Win32_VideoController struct {
+	Name string
+}
+
+func getVRAM() string {
+	var dst []Win32_VideoController
+	if err := wmi.Query("SELECT * FROM Win32_VideoController", &dst); err != nil {
+		log.Fatal(err)
+	}
+
+	return fmt.Sprintf("GPU %s", dst[0].Name)
+}
+
+type Win32_DiskDrive struct {
+	Model        string
+	Size         uint64
+	SerialNumber string
+}
+
+func getDiskDrive() []Win32_DiskDrive {
+	var dst []Win32_DiskDrive
+	if err := wmi.Query("SELECT * FROM Win32_DiskDrive", &dst); err != nil {
+		log.Fatal(err)
 	}
 	return dst
 }

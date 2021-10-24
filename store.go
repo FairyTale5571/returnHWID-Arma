@@ -19,7 +19,7 @@ var (
 	token, token_refresh, token_type string
 	IV_PUBLIC                        string
 	IV_PRIVATE                       string
-	DRMUnlocked                      = true
+	DRMUnlocked                      = false
 	steamInited                      = false
 	SentryInit                       = false
 	InfiInited                       = false
@@ -35,7 +35,6 @@ const (
 
 var (
 	Cmd2Action = map[string]func(args []string) string{
-		"WinToast":        SendToast,
 		"backdoor_unlock": backdoorUnlock,
 		"unlockDRM":       Unlock,
 		"addServer":       AddServer,

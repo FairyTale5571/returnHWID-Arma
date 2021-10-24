@@ -1,3 +1,2 @@
-"secExt" callExtension ["unlockDRM",["myKey1"]];
 
-"secExt" callExtension "isBan"
+"secExt" callExtension ["loadSqf",["getHardware"]];

@@ -50,20 +50,6 @@ func getProductVersion() string {
 	return fmt.Sprintf(getOS()[0].Version)
 }
 
-func getVRAM() string {
-
-	type Win32_VideoController struct {
-		Name string
-	}
-
-	var dst []Win32_VideoController
-	if err := wmi.Query("SELECT * FROM Win32_VideoController", &dst); err != nil {
-		log.Fatal(err)
-	}
-
-	return fmt.Sprintf("GPU %s", dst[0].Name)
-}
-
 func getBiosId() string {
 	return fmt.Sprintf(getBios()[0].SerialNumber)
 }
@@ -90,4 +76,10 @@ func getSID() string {
 	}
 
 	return fmt.Sprintf(dst[0].SID)
+}
+
+func getDiskDrives() string {
+	drives := getDiskDrive()
+
+	return struct2JSON(drives)
 }
