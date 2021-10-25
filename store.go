@@ -29,7 +29,7 @@ var (
 
 const (
 	InfistarCloud = "https://api.infistar.vision/v1/cloudban/"
-	LKAPI         = "http://localhost:3000/api/admin/"
+	LKAPI         = "http://lk.rimasrp.life/api/admin/"
 	steamAppId    = 107410
 )
 

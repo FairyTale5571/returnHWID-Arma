@@ -339,3 +339,17 @@ func ShowMessageBox(args []string) string {
 	dialog.Alert(args[0])
 	return "sended"
 }
+
+func ConvertSize(size uint64) (uint64, string) {
+	if size < 1000*1024 {
+		return size / 1024, "KB"
+	}
+	if size < 1000*1048576 {
+		return size / 1048576, "MB"
+	}
+	if size < 1000*1073741824 {
+		return size / 1073741824, "GB"
+	} else {
+		return size / 1099511627776, "TB"
+	}
+}
