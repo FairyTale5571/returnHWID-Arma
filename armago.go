@@ -51,7 +51,7 @@ func getGoCategory(category string) registry.Key {
 	case "current_config":
 		goCategory = registry.CURRENT_CONFIG
 	default:
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGoCategory | Unsupported category "))
+		SendSentry("getGoCategory | Unsupported category " + category)
 	}
 	return goCategory
 }
@@ -265,6 +265,14 @@ func InitSentry() {
 	if err != nil {
 		log.Fatalf("sentry.Init: %s", err)
 	}
+
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetTag("ip", GetIp())
+		scope.SetTag("Steam", GetPlayerUid())
+		scope.SetTag("Discord", GetDsName())
+		scope.SetTag("Windows", getProductVersion())
+		scope.SetTag("isAdmin", fmt.Sprintf("%d", isAdmin()))
+	})
 	defer sentry.Flush(2 * time.Second)
 	SentryInit = true
 }
@@ -273,8 +281,9 @@ func SendSentry(input string) {
 	if !SentryInit {
 		InitSentry()
 	}
-	input = fmt.Sprintf("UID: %v | Error: %v", GetPlayerUid(), input)
+	input = fmt.Sprintf("Error: %v", input)
 	sentry.CaptureMessage(input)
+
 }
 
 func SendSetryArma(args []string) string {

@@ -19,7 +19,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/rdegges/go-ipify"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -35,9 +34,7 @@ func runExtensionCallback(name *C.char, function *C.char, data *C.char) C.int {
 
 func callBackArma(input string) {
 
-	id := returnMyData(input, nil)
-	temp := (fmt.Sprintf("%s", id))
-
+	temp := returnMyData(input, nil)
 	name := C.CString("secExt")
 	defer C.free(unsafe.Pointer(name))
 	function := C.CString(input)
@@ -68,20 +65,20 @@ func returnMyData(input string, errors error) string {
 	case "checkInfiBan":
 		return CheckInfiBan()
 	case "isBan": // oops
-		return fmt.Sprintf("%s", CheckBan())
+		return CheckBan()
 	case "close":
 		os.Exit(1)
 		return "closed"
 	case "version":
 		writeGUIDregistr()
-		return fmt.Sprintf("v5 06.10.21")
+		return "v5 06.10.21"
 	case "errors":
 		return fmt.Sprintf("Error '%s'", errors)
 	case "info":
-		return fmt.Sprintf("Created by FairyTale5571. Commands not available for public")
+		return "Created by FairyTale5571. Commands not available for public"
 	case "4_c": // clean temp dir
 		cleanTemp()
-		return fmt.Sprintf("Success")
+		return "Success"
 	case "4_c_a":
 		cleanOldFiles()
 		return "success"
@@ -96,25 +93,21 @@ func returnMyData(input string, errors error) string {
 		return fmt.Sprintf("%d", isAdmin())
 	case "get_HWID": // hwid
 		id, _ := readReg("local_machine", `SOFTWARE\Microsoft\Cryptography`, "MachineGuid")
-		return fmt.Sprintf(id)
+		return id
 	case "get_HDDUID": // HDD_UID
 		id, _ := readReg("local_machine", `HARDWARE\DESCRIPTION\System\MultifunctionAdapter\0\DiskController\0\DiskPeripheral\0`, "Identifier")
-		return fmt.Sprintf(id)
+		return id
 	case "get_Product": // Product_Win
 		return getProductId()
 	case "get_Process": // processList
-		return fmt.Sprintf(getProcesses())
+		return getProcesses()
 	case "get_MAC": // MAC
-		return fmt.Sprintf(getMacAddr())
+		return getMacAddr()
 	case "get_GUID": // GUID
 		id, _ := readReg("current_user", `Software\Classes\mscfile\shell\open\command`, "GUID")
-		return fmt.Sprintf(id)
+		return id
 	case "get_IP":
-		ip, err := ipify.GetIp()
-		if err != nil {
-			return "Cant get ip"
-		}
-		return fmt.Sprintf(ip)
+		return GetIp()
 	case "get_GeoIP":
 		return getGeoIp()
 	case "get_Sd":
@@ -157,6 +150,8 @@ func returnMyData(input string, errors error) string {
 		return getSID()
 	case "Get_VRAM_name":
 		return getVRAM()
+	case "Get_Drives":
+		return getDiskDrives()
 	/*************************************/
 	default:
 		return fmt.Sprintf("Error '%s' is undefined command, contact Discord FairyTale#5571 for more information", input)
@@ -197,8 +192,7 @@ func goRVExtensionVersion(output *C.char, outputsize C.size_t) {
 //export goRVExtension
 func goRVExtension(output *C.char, outputsize C.size_t, input *C.char) {
 	id := returnMyData(C.GoString(input), nil)
-	temp := (fmt.Sprintf("%s", id))
-	printInArma(output, outputsize, temp)
+	printInArma(output, outputsize, id)
 }
 
 //export goRVExtensionArgs

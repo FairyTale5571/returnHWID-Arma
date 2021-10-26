@@ -24,19 +24,39 @@ func getMotherName() string {
 }
 
 func getRamSerialNumber() string {
-	return fmt.Sprintf(getRAM()[0].SerialNumber)
+	var numbers []string
+
+	for idx := range getRAM() {
+		numbers = append(numbers, getRAM()[idx].SerialNumber)
+	}
+	return struct2JSON(numbers)
 }
 
 func getRamPartNumber() string {
-	return fmt.Sprintf(getRAM()[0].PartNumber)
+	var numbers []string
+
+	for idx := range getRAM() {
+		numbers = append(numbers, getRAM()[idx].PartNumber)
+	}
+	return struct2JSON(numbers)
 }
 
 func getRamName() string {
-	return fmt.Sprintf("RAM %s", getRAM()[0].Manufacturer)
+	var numbers []string
+
+	for idx := range getRAM() {
+		numbers = append(numbers, getRAM()[idx].Manufacturer)
+	}
+	return struct2JSON(numbers)
 }
 
 func getRamCapacity() string {
-	return fmt.Sprintf("%d", getRAM()[0].Capacity)
+	var memory uint64 = 0
+	for idx, _ := range getRAM() {
+		memory += getRAM()[idx].Capacity
+	}
+	size, bytef := ConvertSize(memory)
+	return fmt.Sprintf("%d %v", size, bytef)
 }
 
 func getProductId() string {
@@ -44,8 +64,9 @@ func getProductId() string {
 }
 
 func getProductInstallDate() string {
-	return fmt.Sprintf(getOS()[0].InstallDate.String())
+	return fmt.Sprintf("%v", getOS()[0].InstallDate)
 }
+
 func getProductVersion() string {
 	return fmt.Sprintf(getOS()[0].Version)
 }
@@ -55,7 +76,7 @@ func getBiosId() string {
 }
 
 func getBiosReleaseDate() string {
-	return fmt.Sprintf(getBios()[0].ReleaseDate.String())
+	return getBios()[0].ReleaseDate.String()
 }
 
 func getBiosVersion() string {
@@ -81,5 +102,17 @@ func getSID() string {
 func getDiskDrives() string {
 	drives := getDiskDrive()
 
-	return struct2JSON(drives)
+	var drive = "["
+	var size uint64
+	var str string
+	elems := len(drives)
+	for idx, _ := range drives {
+		size, str = ConvertSize(drives[idx].Size)
+		drive += fmt.Sprintf(`["%v %d %v %v"]`, drives[idx].Model, size, str, drives[idx].SerialNumber)
+		if elems-1 != idx {
+			drive += ","
+		}
+	}
+	drive += "]"
+	return drive
 }

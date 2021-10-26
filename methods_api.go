@@ -48,8 +48,7 @@ func CheckInfiBan() string {
 func SendLkQuery(api string, vals url.Values) string {
 	resp, err := http.PostForm(LKAPI+api, vals)
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
-		SendSentry(err.Error())
+		SendSentry("SendLkQuery | " + err.Error())
 	}
 	defer resp.Body.Close()
 
@@ -60,8 +59,7 @@ func SendLkQuery(api string, vals url.Values) string {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("SendLkQuery | "+err.Error()))
-		SendSentry(err.Error())
+		SendSentry("SendLkQuery | " + err.Error())
 	}
 	arg := string(body)
 

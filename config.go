@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -50,13 +49,13 @@ func WriteServers() error {
 func readConfig() (map[string]interface{}, error) {
 	f, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Got error while reading %s config file: %v\n", configPath, err))
+		return nil, fmt.Errorf("got error while reading %s config file: %v", configPath, err)
 	}
 
 	var confObj map[string]interface{}
 	err = yaml.Unmarshal(f, &confObj)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Got error while unmarshalling %s config file: %v\n", configPath, err))
+		return nil, fmt.Errorf("got error while unmarshalling %s config file: %v", configPath, err)
 	}
 	return confObj, nil
 }
