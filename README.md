@@ -2,7 +2,7 @@
 
 Return hardware ID to Arma
 
-NOT Approved by battleye!
+Approved by battleye!
 
 Build:
 
